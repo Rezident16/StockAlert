@@ -20,11 +20,7 @@ class User(db.Model, UserMixin):
 
     @password.setter
     def password(self, password):
-        if password == "OAUTH":
-            self.hashed_password = "OAUTH"
-            return
-        else:
-            self.hashed_password = generate_password_hash(password)
+        self.hashed_password = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
