@@ -12,5 +12,5 @@ def get_stock(id):
 @stock_routes.route('/<int:id>/news')
 def get_stock_news(id):
     stock = Stock.query.get(id)
-    news = stock.get_sentiment()
+    news = stock.estimate_sentiment()
     return str(news)
