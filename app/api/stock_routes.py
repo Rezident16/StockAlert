@@ -23,7 +23,10 @@ def format_news(news_list):
             'sentiment': sentiment,
             'probability': f'{probability:.4f}',
             'url': content.url,
-            'images': content.images
+            'images': content.images,
+            'summary': content.summary,
+            'source': content.source,
+            'symbols': content.symbols,
         }
         formatted_news.append(formatted_content)
     return formatted_news

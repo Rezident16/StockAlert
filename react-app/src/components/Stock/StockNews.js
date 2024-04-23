@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { getStockNewsThunk } from "../../store/stock";
 import { useSelector } from 'react-redux';
+import StockTile from "./StockTile";
 
 function StockNews() {
     const dispatch = useDispatch()
@@ -15,7 +16,9 @@ function StockNews() {
     console.log(stockNews)
     return (
         <div>
-            <h1>{stock.id}</h1>
+           {stockNews.map((news) => (
+               <StockTile key={news.id} news={news}/>
+           ))}  
         </div>
     )
 }

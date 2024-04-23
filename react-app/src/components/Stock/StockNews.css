@@ -1,0 +1,54 @@
+.stock-tile {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  
+  .stock-tile h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .stock-tile img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .stock-tile h3 {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  .stock-tile p {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  
+  .stock-tile a {
+    display: inline-block;
+    color: #007BFF;
+    text-decoration: none;
+    padding: 10px 20px;
+    border: 1px solid #007BFF;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+  }
+  
+  .stock-tile a:hover {
+    background-color: #007BFF;
+    color: #fff;
+  }
+
+  .stock-news-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+  }
