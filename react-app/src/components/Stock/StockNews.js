@@ -12,8 +12,7 @@ function StockNews() {
         dispatch(getStockNewsThunk(stock.id))
     }, [stock.id, dispatch])
 
-    const stockNews = useSelector(state => state.stock.news)
-    console.log(stockNews)
+    const stockNews = useSelector(state => state.stock.news).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     return (
         <div>
            {stockNews.map((news) => (

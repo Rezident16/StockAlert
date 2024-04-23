@@ -27,6 +27,7 @@ def format_news(news_list):
             'summary': content.summary,
             'source': content.source,
             'symbols': content.symbols,
+            'id': content.id,
         }
         formatted_news.append(formatted_content)
     return formatted_news
