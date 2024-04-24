@@ -53,10 +53,9 @@ def estimate_sentiment(stock):
     return news_and_sentiment
 
 
-def get_barset(stock, timeFrameSize):
+def get_barset(stock):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
-    if timeFrameSize == "Hour":
-        timeframe = TimeFrame.Hour
+    timeframe = TimeFrame.Hour
     barset = api.get_bars(stock.symbol, timeframe, limit=10)
     print (barset)
     return barset

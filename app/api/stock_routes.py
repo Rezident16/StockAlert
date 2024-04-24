@@ -49,11 +49,12 @@ def bar_to_dict(bar):
         'high': bar.h,
         'low': bar.l,
         'open': bar.o,
+        "date": bar.t
     }
 @stock_routes.route('/<int:id>/barset')
 def get_stock_barset(id):
     stock = Stock.query.get(id)
-    barset = get_barset(stock, timeFrameSize = "Hour")
+    barset = get_barset(stock)
     json_barset = [bar_to_dict(bar) for bar in barset]
     return json_barset
 
