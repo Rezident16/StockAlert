@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from alpaca_trade_api import REST
+# from alpaca_trade_api import REST
 from torch import device
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 from typing import Tuple
-from alpaca_trade_api import REST
+from alpaca_trade_api import REST, TimeFrame, TimeFrameUnit
 from dotenv import load_dotenv
 import urllib.request
 import time
@@ -29,7 +29,6 @@ ALPACA_CREDS = {
 }
 
 def estimate_sentiment(stock):
-    print (stock)
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
     today = datetime.now().date()
     yesterday = today - timedelta(days=1)
@@ -52,3 +51,12 @@ def estimate_sentiment(stock):
     else:
         return 0, labels[-1]     
     return news_and_sentiment
+
+
+def get_barset(stock, timeFrameSize):
+    api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
+    if timeFrameSize == "Hour":
+        timeframe = TimeFrame.Hour
+    barset = api.get_bars(stock.symbol, timeframe, limit=10)
+    print (barset)
+    return barset

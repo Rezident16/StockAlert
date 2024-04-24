@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request, abort
 from app.models import *
 from datetime import datetime
-from app.models.stock_utils.news import estimate_sentiment
+from app.models.stock_utils.utils import estimate_sentiment, get_barset
+import json
 
 stock_routes = Blueprint('stocks', __name__)
 
@@ -39,6 +40,22 @@ def get_stock_news(id):
     formatted_news = format_news(news)
     return jsonify(formatted_news)
     # return stock.to_dict()
+
+
+# BARS
+def bar_to_dict(bar):
+    return {
+        'close': bar.c,
+        'high': bar.h,
+        'low': bar.l,
+        'open': bar.o,
+    }
+@stock_routes.route('/<int:id>/barset')
+def get_stock_barset(id):
+    stock = Stock.query.get(id)
+    barset = get_barset(stock, timeFrameSize = "Hour")
+    json_barset = [bar_to_dict(bar) for bar in barset]
+    return json_barset
 
 @stock_routes.route('/')
 def get_all_stocks():
