@@ -61,7 +61,8 @@ def get_barset(stock):
     barset = api.get_bars(stock.symbol, timeframe, limit=24)
     return barset
 
-import numpy as np
+def convert_date_to_milliseconds(date_timestamp):
+    return int(date_timestamp.to_pydatetime().timestamp() * 1000)
 
 def check_patterns(barset, stock):
     open = np.array([bar['open'] for bar in barset])
@@ -141,8 +142,8 @@ def check_patterns(barset, stock):
 
         result_list = result.tolist()
         bullish_bearish_result = [
-    {"date": date[i], "value": value, "sentiment": 'Bullish', "pattern": pattern, "stock": stock} if value >= 100 
-    else {"date": date[i], "value": value, "sentiment": 'Bearish', "pattern": pattern, "stock": stock} 
+    {"date": date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bullish', "pattern": pattern, "stock": stock} if value >= 100 
+    else {"date": date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bearish', "pattern": pattern, "stock": stock} 
     for i, value in enumerate(result_list) if value >= 100 or value <= -100
 ]
 
