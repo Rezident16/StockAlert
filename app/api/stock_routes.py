@@ -52,12 +52,11 @@ def bar_to_dict(bar):
         "date": bar.t
     }
 @stock_routes.route('/<int:id>/barset')
-def get_stock_barset(id):
+def get_stock_patterns(id):
     stock = Stock.query.get(id)
-    print(stock, 'stock')
     barset = get_barset(stock)
     json_barset = [bar_to_dict(bar) for bar in barset]
-    return check_patterns(json_barset, stock.symbol)
+    return check_patterns(json_barset, stock)
     # return json_barset
 
 @stock_routes.route('/')

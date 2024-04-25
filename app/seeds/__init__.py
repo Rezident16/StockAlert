@@ -19,6 +19,8 @@ def seed():
         # Make sure to add all your other model's undo functions below
         undo_users()
         undo_stocks()
+        db.drop_all()
+    db.create_all()
     seed_users()
     seed_stocks()
     # Add other seed functions here
@@ -27,4 +29,5 @@ def seed():
 def undo():
     undo_users()
     undo_stocks()
+    db.drop_all()
     # Add other undo functions here

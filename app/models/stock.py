@@ -1,13 +1,5 @@
 from .db import db, environment, SCHEMA, add_prefix_for_prod
 # Import libraries
-import pandas as pd
-from bs4 import BeautifulSoup
-import matplotlib.pyplot as plt
-from urllib.request import urlopen, Request
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from datetime import date
-from timedelta import Timedelta 
-from datetime import datetime
 
 
 class Stock(db.Model):
@@ -21,6 +13,9 @@ class Stock(db.Model):
 
     watchlist_stocks = db.relationship('WatchlistStock', back_populates='stock', cascade='all, delete-orphan')
 
+    patterns = db.relationship('Pattern', back_populates='stock', cascade='all, delete-orphan')
+
+    stock_news = db.relationship('StockNews', back_populates='stock', cascade='all, delete-orphan')
 
 
     def to_dict(self):
@@ -33,4 +28,19 @@ class Stock(db.Model):
         return {
             'id': self.id,
             'symbol': self.symbol,
+            'watchlist_stocks': [watchlist_stock.to_dict() for watchlist_stock in self.watchlist_stocks],
+        }
+    
+    def to_dict_pattern(self):
+        return {
+            'id': self.id,
+            'symbol': self.symbol,
+            'patterns': [pattern.to_dict_self() for pattern in self.patterns],
+        }
+    
+    def to_dict_stock_news(self):
+        return {
+            'id': self.id,
+            'symbol': self.symbol,
+            'stock_news': [stock_news.to_dict_news() for stock_news in self.stock_news],
         }
