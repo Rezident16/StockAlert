@@ -13,6 +13,7 @@ class Pattern(db.Model):
     pattern_name = db.Column(db.String(150), nullable=False)
     sentiment = db.Column(db.String(150), nullable=False)
     value = db.Column(db.Integer, nullable=False)
+    timeframe = db.Column(db.String(150), nullable=False)
 
     stock = db.relationship('Stock', back_populates='patterns')
 
@@ -25,6 +26,7 @@ class Pattern(db.Model):
             'pattern_name': self.pattern_name,
             'sentiment': self.sentiment,
             'value': self.value,
+            'timeframe': self.timeframe,
         }
     
     def to_dict_stock(self):
@@ -36,5 +38,6 @@ class Pattern(db.Model):
             'pattern_name': self.pattern_name,
             'sentiment': self.sentiment,
             'value': self.value,
+            'timeframe': self.timeframe,
             'stock': self.stock.to_dict(),
         }

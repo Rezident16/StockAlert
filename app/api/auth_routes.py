@@ -9,10 +9,10 @@ import pathlib
 
 import requests
 from flask import abort, redirect # note that you can slap these 2 imports at the end of the 'from flask import' statement that you probably already have.
-from google.oauth2 import id_token
-from google_auth_oauthlib.flow import Flow
+# from google.oauth2 import id_token
+# from google_auth_oauthlib.flow import Flow
 from pip._vendor import cachecontrol
-import google.auth.transport.requests
+# import google.auth.transport.requests
 from tempfile import NamedTemporaryFile
 import json
 

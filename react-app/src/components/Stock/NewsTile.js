@@ -1,6 +1,6 @@
 import "./StockNews.css";
 
-function StockTile({ news }) {
+function NewsTile({ news }) {
   const sentimentClassName =
     news.sentiment === "positive"
       ? "sentiment positive"
@@ -44,4 +44,4 @@ function StockTile({ news }) {
   );
 }
 
-export default StockTile;
+export default NewsTile;

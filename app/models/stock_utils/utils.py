@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from torch import device
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-from alpaca_trade_api import REST, TimeFrame
+from alpaca_trade_api import REST, TimeFrame, TimeFrameUnit
 from dotenv import load_dotenv
 import talib
 import numpy as np
@@ -13,6 +13,7 @@ from ..patterns import Pattern
 from ..news import News
 from ..db import db
 from ..stock import Stock
+import alpaca
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -29,13 +30,15 @@ BASE_URL = os.getenv("BASE_URL")
 ALPACA_CREDS = {
     "API_KEY":API_KEY, 
     "API_SECRET": API_SECRET, 
-    "PAPER": True
 }
 """
 Note: News sentiment analysis.
-Utilizing Alpaca API to get news articles for a specific stock.
+Utilizing Alpaca API to get news articles for a specific stocqk.
 Utilizing torch to analyze the sentiment of the news articles.
 """
+
+
+
 def estimate_sentiment(stock):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
     today = datetime.now().date()
@@ -59,6 +62,10 @@ def estimate_sentiment(stock):
 
             for symbol in newsObj['content'].symbols:
                 stock = Stock.query.filter_by(symbol=symbol).first()
+                """
+                Can have muiltiple symbols in the news article that are not necessarily in the db
+                We can potentially create these stocks and add them to the db in the future - TODO
+                """
                 if stock:
                     existing_news = News.query.filter_by(
                         news_id=newsObj['content'].id, 
@@ -89,10 +96,36 @@ def estimate_sentiment(stock):
 Stock pattern analysis.
 Utilizing Alpaca API to get hourly stock data. - Ideally we want to implement multiple timeframe in the future - TODO
 """
-def get_barset(stock):
+
+def get_dates(prev): 
+        today = datetime.now().date() - timedelta(days=1)
+        prior = today - timedelta(days=prev + 1)
+        prioWeekly = today - timedelta(days=(prev*4))
+        return today.strftime('%Y-%m-%d'), prior.strftime('%Y-%m-%d'), prioWeekly.strftime('%Y-%m-%d')
+
+def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
-    timeframe = TimeFrame.Hour
-    barset = api.get_bars(stock.symbol, timeframe, limit=24)
+    # timeframe = TimeFrame.30min
+    today, priorDates, prioWeeklyDates = get_dates(30)
+    print(today, priorDates, "dates")
+    
+    if timeFrameChosen == '15Min':
+        barset = api.get_bars(stock.symbol,timeframe=TimeFrame(15, TimeFrameUnit.Minute), limit=100) # 15 Min timeframe
+    elif timeFrameChosen == '30Min':
+        barset = api.get_bars(stock.symbol,timeframe=TimeFrame(30, TimeFrameUnit.Minute), limit=100) # 30 Min timeframe
+    elif timeFrameChosen == '1Hour':
+        barset = api.get_bars(stock.symbol,timeframe=TimeFrame.Hour, limit=100) # Hourly timeframe
+    elif timeFrameChosen == '1Day':
+        barset = api.get_bars(stock.symbol, TimeFrame.Day, start=priorDates, end=today, limit=100) # Daily timeframe
+    else:
+        barset = api.get_bars(stock.symbol, TimeFrame.Week, start=prioWeeklyDates, end=today, limit=100) # Weekly timeframe
+    
+    # Hourly timeframe
+    # Daily timeframe
+    """
+    Commented out code below. Need to implement a way to track the stock price when the pattern was caught (close price?)
+    Track it agains latest price - TODO
+    """
     # latest_bar = api.get_latest_bars(stock.symbol)
     # latest_trade = api.get_latest_trade(stock.symbol)
     # latest_bar_price = latest_bar[stock.symbol].vw
@@ -109,7 +142,7 @@ def convert_date_to_milliseconds(date_timestamp):
 """
 Utilizing TA-Lib to check for patterns in the stock data and adding them to the database.
 """
-def check_patterns(barset, stock):
+def check_patterns(barset, stock, timeframe):
     open = np.array([bar['open'] for bar in barset])
     high = np.array([bar['high'] for bar in barset])
     low = np.array([bar['low'] for bar in barset])
@@ -186,19 +219,18 @@ def check_patterns(barset, stock):
 
         result_list = result.tolist()
         bullish_bearish_result = [
-            {"date": date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bullish', "pattern": pattern, "stock": stock.symbol} if value >= 100 
-            else {"date":date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bearish', "pattern": pattern, "stock": stock.symbol} 
+            {"date": date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bullish', "pattern": pattern, "stock": stock.symbol, 'timeframe': timeframe} if value >= 100 
+            else {"date":date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bearish', "pattern": pattern, "stock": stock.symbol,'timeframe': timeframe} 
             for i, value in enumerate(result_list) if value >= 100 or value <= -100
         ]
 
         if len(bullish_bearish_result) > 0:
             existing_pattern = Pattern.query.filter_by(
                 stock_id=stock.id,
-                date=bullish_bearish_result[0]['date'].strftime('%Y-%m-%d'),
                 milliseconds=bullish_bearish_result[0]['milliseconds'],
                 pattern_name=pattern,
                 sentiment=bullish_bearish_result[0]['sentiment'],
-                value=bullish_bearish_result[0]['value']
+                timeframe = timeframe
             ).first()
 
             if existing_pattern is None:
@@ -208,10 +240,10 @@ def check_patterns(barset, stock):
                     milliseconds=bullish_bearish_result[0]['milliseconds'],
                     pattern_name=pattern,
                     sentiment=bullish_bearish_result[0]['sentiment'],
-                    value=bullish_bearish_result[0]['value']
+                    value=bullish_bearish_result[0]['value'],
+                    timeframe = timeframe
                 )
                 db.session.add(pattern_instance)
             results[pattern] = bullish_bearish_result
-
     db.session.commit()
     return results

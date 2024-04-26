@@ -1,0 +1,30 @@
+.pattern-container {
+    width: 300px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    margin: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stock-date {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  
+  .pattern-time {
+    margin-bottom: 10px;
+  }
+  
+  .sentiment {
+    width: 50%;
+  }
+
+  .pattern {
+    width: fit-content;
+    padding: 0px 10px;
+    border-radius: 7px;
+  }

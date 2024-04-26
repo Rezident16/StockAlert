@@ -51,13 +51,16 @@ def bar_to_dict(bar):
         'open': bar.o,
         "date": bar.t
     }
-@stock_routes.route('/<int:id>/barset')
+@stock_routes.route('/<int:id>/patterns')
 def get_stock_patterns(id):
     stock = Stock.query.get(id)
-    barset = get_barset(stock)
-    json_barset = [bar_to_dict(bar) for bar in barset]
-    return check_patterns(json_barset, stock)
-    # return json_barset
+    res = []
+    timeframes = ['15Min', '30Min', '1Hour', '1Day', '1Week']
+    for time in timeframes:
+        barset = get_barset(stock, time)
+        json_barset = [bar_to_dict(bar) for bar in barset]
+        res.append(check_patterns(json_barset, stock, time))
+    return res
 
 @stock_routes.route('/')
 def get_all_stocks():

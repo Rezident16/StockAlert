@@ -2,12 +2,16 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 import session from './session'
 import userReducer from './user';
-import stockReducer from './stock';
+import newsReducer from './news';
+import stockReducer from './stocks';
+import patternsReducer from './patterns';
 
 const rootReducer = combineReducers({
   session,
   user: userReducer,
-  stock: stockReducer,
+  news: newsReducer,
+  stocks: stockReducer,
+  patterns: patternsReducer
 });
 
 

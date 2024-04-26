@@ -5,6 +5,7 @@ import LoginFormPage from "./components/LoginFormPage";
 import { authenticate } from "./store/session";
 import Navigation from "./components/Navigation";
 import StockNews from "./components/Stock/StockNews";
+import StockPatterns from "./components/Stock/StockPatterns";
 
 function App() {
   const dispatch = useDispatch();
@@ -24,6 +25,9 @@ function App() {
           </Route>
           <Route path="/stock/:id/news">
             <StockNews />
+          </Route>
+          <Route path="/stock/:id/patterns">
+            <StockPatterns />
           </Route>
         </Switch>
       )}
