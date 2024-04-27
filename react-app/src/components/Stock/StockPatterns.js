@@ -4,32 +4,35 @@ import { useDispatch, useSelector } from "react-redux";
 // import { getStockNewsThunk } from "../../store/news";
 import { getStockPatternsThunk } from "../../store/patterns";
 import PatternTile from "./PatternTile";
+import getStockPrice from './stockPrice'
+import { getStockPriceThunk } from "../../store/stockPrice";
 
 function StockPatterns() {
-    const stock = useParams();
-    const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(getStockPatternsThunk(stock.id));
-    }, [stock.id])
-    const patterns = useSelector(state => state.patterns.patterns);
-    let patternsArr = []
-    for (let timeframe of patterns) {
-        // console.log(Object.keys(timeframe))
-        const keys = Object.keys(timeframe)
-        for (let key of keys) {
-            patternsArr.push(timeframe[key])
-        }
-    }
-    patternsArr = patternsArr.flat()
-    patternsArr = patternsArr.sort((a, b) => new Date(b.milliseconds) - new Date(a.milliseconds))
-    console.log(patternsArr)
-    return (
-        <div>
-            {patternsArr.map((pattern) => (
-                <PatternTile pattern={pattern}/>
-            ))}
-        </div>
-    )
+  const stock = useParams();
+  const dispatch = useDispatch();
+  
+//   const getStockPrice = require('./stockPrice')
+//   getStockPrice()
+
+useEffect(() => {
+    dispatch(getStockPatternsThunk(stock.id));
+    dispatch(getStockPriceThunk(stock.id));
+}, [stock.id]);
+let patterns = useSelector((state) => state.patterns.patterns);
+let currPrice = useSelector((state) => state.price.price);
+if (!patterns) {
+  return null;
+}
+  patterns = patterns.sort(
+    (a, b) => b.milliseconds - a.milliseconds
+  );
+  return (
+    <div>
+      {patterns.map((pattern) => (
+        <PatternTile pattern={pattern} currPrice = {currPrice}/>
+      ))}
+    </div>
+  );
 }
 
 export default StockPatterns;

@@ -9,6 +9,7 @@ export const getStockPatternsThunk = (id) => async (dispatch) => {
     const response = await fetch(`/api/stocks/${id}/patterns`);
     if (response.ok) {
         const data = await response.json();
+        console.log(data, 'data')
         dispatch(getStockPatterns(data));
     }
 }
@@ -20,7 +21,7 @@ export default function patternsReducer(state = initialState, action) {
         case 'stock/GET_STOCK_PATTERNS':
           return {
             ...state,
-            patterns: [...action.patterns]
+            patterns: [...action.patterns.patterns]
           };
         default:
           return state;

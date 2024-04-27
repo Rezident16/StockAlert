@@ -14,6 +14,7 @@ from ..news import News
 from ..db import db
 from ..stock import Stock
 import alpaca
+import lumibot
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -107,7 +108,6 @@ def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
     # timeframe = TimeFrame.30min
     today, priorDates, prioWeeklyDates = get_dates(30)
-    print(today, priorDates, "dates")
     
     if timeFrameChosen == '15Min':
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame(15, TimeFrameUnit.Minute), limit=100) # 15 Min timeframe
@@ -218,9 +218,10 @@ def check_patterns(barset, stock, timeframe):
         result = function(open, high, low, close)
 
         result_list = result.tolist()
+        print (result_list, 'result_list')
         bullish_bearish_result = [
-            {"date": date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bullish', "pattern": pattern, "stock": stock.symbol, 'timeframe': timeframe} if value >= 100 
-            else {"date":date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bearish', "pattern": pattern, "stock": stock.symbol,'timeframe': timeframe} 
+            {"date": date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bullish', "pattern": pattern, "stock": stock.symbol, 'timeframe': timeframe, 'close': close[i] } if value >= 100 
+            else {"date":date[i],"milliseconds": convert_date_to_milliseconds(date[i]), "value": value, "sentiment": 'Bearish', "pattern": pattern, "stock": stock.symbol,'timeframe': timeframe, 'close': close[i]} 
             for i, value in enumerate(result_list) if value >= 100 or value <= -100
         ]
 
@@ -241,9 +242,19 @@ def check_patterns(barset, stock, timeframe):
                     pattern_name=pattern,
                     sentiment=bullish_bearish_result[0]['sentiment'],
                     value=bullish_bearish_result[0]['value'],
-                    timeframe = timeframe
+                    timeframe = timeframe,
+                    latest_price = bullish_bearish_result[0]['close']
                 )
                 db.session.add(pattern_instance)
             results[pattern] = bullish_bearish_result
     db.session.commit()
-    return results
+    # return results
+
+def get_price(stock):
+    api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
+    # quotes = api.get_quotes(stock)
+    # latest_trade = api.get_latest_trade(stock)
+    # latest_quote = api.get_latest_quote(stock)
+    snapshot = api.get_snapshot(stock)
+    # print(snapshot.minute_bar.vw, 'snapshot')
+    return snapshot.minute_bar.vw

@@ -14,6 +14,7 @@ class Pattern(db.Model):
     sentiment = db.Column(db.String(150), nullable=False)
     value = db.Column(db.Integer, nullable=False)
     timeframe = db.Column(db.String(150), nullable=False)
+    latest_price = db.Column(db.Float, nullable=False)
 
     stock = db.relationship('Stock', back_populates='patterns')
 
@@ -27,6 +28,7 @@ class Pattern(db.Model):
             'sentiment': self.sentiment,
             'value': self.value,
             'timeframe': self.timeframe,
+            'latest_price': self.latest_price,
         }
     
     def to_dict_stock(self):
@@ -39,5 +41,6 @@ class Pattern(db.Model):
             'sentiment': self.sentiment,
             'value': self.value,
             'timeframe': self.timeframe,
-            'stock': self.stock.to_dict(),
+            'latest_price': self.latest_price,
+            'stock': self.stock.to_dict_symbol(),
         }

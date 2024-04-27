@@ -44,3 +44,8 @@ class Stock(db.Model):
             'symbol': self.symbol,
             'stock_news': [stock_news.to_dict_news() for stock_news in self.stock_news],
         }
+    
+    def to_dict_symbol(self):
+        return {
+            'symbol': self.symbol,
+        }

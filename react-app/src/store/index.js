@@ -5,13 +5,15 @@ import userReducer from './user';
 import newsReducer from './news';
 import stockReducer from './stocks';
 import patternsReducer from './patterns';
+import stockPriceReducer from './stockPrice';
 
 const rootReducer = combineReducers({
   session,
   user: userReducer,
   news: newsReducer,
   stocks: stockReducer,
-  patterns: patternsReducer
+  patterns: patternsReducer,
+  price: stockPriceReducer
 });
 
 
