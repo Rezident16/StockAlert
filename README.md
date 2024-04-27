@@ -5,5 +5,6 @@
 
 ### Ability to catch patterns using TA-Lib to catch patterns and Alpaca API to get pricing
 #### Need to include longer time frames such as month over month and day over day
-![image](https://github.com/Rezident16/StockAlert/assets/137537436/8f44d14d-d447-496e-8c28-e11bd98a06f0)
+![image](https://github.com/Rezident16/StockAlert/assets/137537436/af6998b1-29bd-4a47-bcfe-fb759fb4f27a)
+
 
