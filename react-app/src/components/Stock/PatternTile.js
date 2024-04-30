@@ -1,13 +1,13 @@
 import patternConversion from "./patternConversion";
 import "./Pattern.css";
-function PatternTile({pattern, currPrice}) {
+function PatternTile({pattern, currPrice, priceClass}) {
   const date = new Date(parseInt(pattern.milliseconds));
   const localDate = date.toLocaleDateString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
   });
   const sentiment = pattern.sentiment;
-  const stock = pattern.stock.symbol;
+  const stock = pattern.stock.symbol || "TEST";
   const timeframe = pattern.timeframe;
   const patternName = patternConversion(pattern.pattern_name);
   const sentimentClassName =
@@ -23,7 +23,6 @@ function PatternTile({pattern, currPrice}) {
     timeframe
     value
     */
-   console.log(currPrice)
   return (
     <div className="pattern-container">
       <div className="stock-date">
@@ -38,7 +37,7 @@ function PatternTile({pattern, currPrice}) {
 
       <div>
         <div>Price when caught: ${latestPrice}</div>
-        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>Current Price: ${currPrice} <p style={{color: currPrice > latestPrice ? 'green' : 'red', fontWeight: 'bold', fontSize: '20px'}}>{currPrice > latestPrice ? '↑' : '↓'} ${(currPrice - latestPrice).toFixed(2)}</p></div>
+        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>Current Price: <p className={priceClass} style={{marginLeft: '3px'}}> ${currPrice}</p> <p style={{color: currPrice > latestPrice ? 'green' : 'red', fontWeight: 'bold', fontSize: '20px'}}>{currPrice > latestPrice ? '↑' : '↓'} ${(currPrice - latestPrice).toFixed(2)}</p></div>
       </div>
     </div>
   );

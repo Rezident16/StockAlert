@@ -14,6 +14,19 @@ function App() {
     dispatch(authenticate()).then(() => setIsLoaded(true));
   }, [dispatch]);
   
+  useEffect(() => {
+    const fetchData = () => {
+      fetch('http://localhost:5000/api/stocks/get_patterns')
+        .then(response => response.json())
+        .then(data => {
+          setTimeout(fetchData, 20 * 60 * 1000);
+        })
+        .catch(error => {
+          setTimeout(fetchData, 20 * 60 * 1000);
+        });
+    };
+      fetchData();
+  }, []);
 
   return (
     <>

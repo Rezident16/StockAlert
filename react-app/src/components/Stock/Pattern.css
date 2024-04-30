@@ -28,3 +28,15 @@
     padding: 0px 10px;
     border-radius: 7px;
   }
+
+  .down-price, .up-price {
+    transition: background-color 0.5s ease;
+  }
+  
+  .down-price {
+    background-color: red;
+  }
+
+  .up-price {
+    background-color: green;
+  }

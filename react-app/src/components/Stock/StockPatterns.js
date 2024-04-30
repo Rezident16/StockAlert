@@ -1,35 +1,84 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
-// import { getStockNewsThunk } from "../../store/news";
 import { getStockPatternsThunk } from "../../store/patterns";
 import PatternTile from "./PatternTile";
-import getStockPrice from './stockPrice'
 import { getStockPriceThunk } from "../../store/stockPrice";
+import io from "socket.io-client";
 
 function StockPatterns() {
   const stock = useParams();
   const dispatch = useDispatch();
-  
-//   const getStockPrice = require('./stockPrice')
-//   getStockPrice()
+  const currPatterns = useSelector((state) => state.patterns.patterns);
+  let [patterns, setPatterns] = useState([]);
 
-useEffect(() => {
+  useEffect(() => {
+    setPatterns(currPatterns);
+  }, [currPatterns]);
+
+  useEffect(() => {
     dispatch(getStockPatternsThunk(stock.id));
-    dispatch(getStockPriceThunk(stock.id));
-}, [stock.id]);
-let patterns = useSelector((state) => state.patterns.patterns);
-let currPrice = useSelector((state) => state.price.price);
-if (!patterns) {
-  return null;
-}
-  patterns = patterns.sort(
-    (a, b) => b.milliseconds - a.milliseconds
-  );
+    const intervalId = setInterval(() => {
+      console.log("fetching stock price");
+      dispatch(getStockPriceThunk(stock.id));
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [dispatch, stock.id]);
+
+  useEffect(() => {
+    const socket = io("http://localhost:5000/patterns");
+
+    socket.on("connect", () => {
+      console.log("Connected to server");
+    });
+
+    socket.on("patterns", (newPattern) => {
+      console.log("New stock pattern emitted:", newPattern);
+      if (newPattern.stock_id == stock.id) {
+        setPatterns((prevPatterns) => [...prevPatterns, newPattern]);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  let currPrice = useSelector((state) => state.price.price);
+
+  const [price, setPrice] = useState(currPrice);
+  const [priceClass, setPriceClass] = useState("neutral-price");
+
+  useEffect(() => {
+    if (price > currPrice) {
+      setPriceClass("down-price");
+      setTimeout(() => setPriceClass("neutral-price"), 500);
+    } else if (price < currPrice) {
+      setPriceClass("up-price");
+      setTimeout(() => setPriceClass("neutral-price"), 500);
+    } else {
+      setPriceClass("neutral-price");
+    }
+  }, [price, currPrice]);
+
+  useEffect(() => {
+    setTimeout(() => setPrice(currPrice), 3000);
+    // setPrice(currPrice);
+  }, [currPrice]);
+
+  if (!patterns) {
+    return null;
+  }
+  patterns = patterns.sort((a, b) => b.milliseconds - a.milliseconds);
+  console.log(patterns);
   return (
     <div>
       {patterns.map((pattern) => (
-        <PatternTile pattern={pattern} currPrice = {currPrice}/>
+        <PatternTile
+          pattern={pattern}
+          currPrice={currPrice}
+          priceClass={priceClass}
+        />
       ))}
     </div>
   );

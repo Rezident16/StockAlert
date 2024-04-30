@@ -1,3 +1,4 @@
+
 async function getStockPrice(id) {
     const response = await fetch(`/api/stocks/${id}/stock_price`);
     if (response.ok) {

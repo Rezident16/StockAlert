@@ -1,4 +1,5 @@
 from .db import db, environment, SCHEMA
+from .stock import Stock
 
 class Pattern(db.Model):
     __tablename__ = 'patterns'
@@ -32,6 +33,7 @@ class Pattern(db.Model):
         }
     
     def to_dict_stock(self):
+        stock = Stock.query.get(self.stock_id)
         return {
             'id': self.id,
             'stock_id': self.stock_id,
@@ -42,5 +44,5 @@ class Pattern(db.Model):
             'value': self.value,
             'timeframe': self.timeframe,
             'latest_price': self.latest_price,
-            'stock': self.stock.to_dict_symbol(),
+            'stock': stock.to_dict_symbol(),
         }

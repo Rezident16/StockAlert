@@ -39,8 +39,17 @@ Utilizing torch to analyze the sentiment of the news articles.
 """
 
 
+"""
+Websockets in here currently don't make sense
+However, we can potentially run estimate sentiment in the background across all stocks
+and emit the news to the frontend when it's done - TODO
 
+
+"""
 def estimate_sentiment(stock):
+    # from app import get_socketio
+    from app.sockets.news import NewsNameSpace
+    # socketio = get_socketio()
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
     today = datetime.now().date()
     yesterday = today - timedelta(days=1)
@@ -79,14 +88,16 @@ def estimate_sentiment(stock):
                             author=newsObj['content'].author,
                             headline=newsObj['content'].headline,
                             created_at=str(newsObj['content'].created_at),
-                            sentiment=newsObj['sentiment'],
-                            probability=newsObj['probability'],
+                            sentiment=newsObj['sentiment'].tolist() if isinstance(newsObj['sentiment'], torch.Tensor) else newsObj['sentiment'],
+                            probability=newsObj['probability'].tolist() if isinstance(newsObj['probability'], torch.Tensor) else newsObj['probability'],
                             url=newsObj['content'].url,
                             images=newsObj['content'].images,
                             source=newsObj['content'].source,
                             summary=newsObj['content'].summary
                         )
                         db.session.add(news_instance)
+                        # news_namespace = NewsNameSpace('/news')
+                        # news_namespace.emit('news', news_instance.to_dict_stock_news())
         db.session.commit()
     else:
         return 0, labels[-1]     
@@ -143,6 +154,8 @@ def convert_date_to_milliseconds(date_timestamp):
 Utilizing TA-Lib to check for patterns in the stock data and adding them to the database.
 """
 def check_patterns(barset, stock, timeframe):
+    from app.sockets.news import patterns_namespace
+
     open = np.array([bar['open'] for bar in barset])
     high = np.array([bar['high'] for bar in barset])
     low = np.array([bar['low'] for bar in barset])
@@ -246,6 +259,7 @@ def check_patterns(barset, stock, timeframe):
                     latest_price = bullish_bearish_result[0]['close']
                 )
                 db.session.add(pattern_instance)
+                patterns_namespace.emit('patterns', pattern_instance.to_dict_stock(), namespace='/patterns')
             results[pattern] = bullish_bearish_result
     db.session.commit()
     # return results
