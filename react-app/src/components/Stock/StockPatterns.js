@@ -5,6 +5,7 @@ import { getStockPatternsThunk } from "../../store/patterns";
 import PatternTile from "./PatternTile";
 import { getStockPriceThunk } from "../../store/stockPrice";
 import io from "socket.io-client";
+import StockList from "./Stocks";
 
 function StockPatterns() {
   const stock = useParams();
@@ -70,16 +71,22 @@ function StockPatterns() {
     return null;
   }
   patterns = patterns.sort((a, b) => b.milliseconds - a.milliseconds);
-  console.log(patterns);
   return (
-    <div>
-      {patterns.map((pattern) => (
-        <PatternTile
-          pattern={pattern}
-          currPrice={currPrice}
-          priceClass={priceClass}
-        />
-      ))}
+    <div className="container">
+      <div className="stock-list">
+        <StockList />
+      </div>
+      <div className="patterns">
+        {patterns.map((pattern) => (
+          <div>
+            <PatternTile
+              pattern={pattern}
+              currPrice={currPrice}
+              priceClass={priceClass}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

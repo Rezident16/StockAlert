@@ -1,6 +1,6 @@
 import patternConversion from "./patternConversion";
 import "./Pattern.css";
-function PatternTile({pattern, currPrice, priceClass}) {
+function PatternTile({ pattern, currPrice, priceClass }) {
   const date = new Date(parseInt(pattern.milliseconds));
   const localDate = date.toLocaleDateString(undefined, {
     hour: "2-digit",
@@ -12,32 +12,61 @@ function PatternTile({pattern, currPrice, priceClass}) {
   const patternName = patternConversion(pattern.pattern_name);
   const sentimentClassName =
     sentiment === "Bullish" ? "positive pattern" : "negative pattern";
-    const latestPrice = pattern.latest_price.toFixed(2)
-    
-  /*
-    date
-    milliseconds
-    pattern
-    sentiment
-    stock
-    timeframe
-    value
-    */
+  const latestPrice = pattern.latest_price.toFixed(2);
   return (
-    <div className="pattern-container">
-      <div className="stock-date">
-        <h2>{stock}</h2>
-        <div>{localDate}</div>
+    <div
+      className="pattern-container"
+    >
+      <div
+        className="stock-date"
+      >
+        <h2 style={{ margin: "0", color: "#2C2D30" }}>{stock}</h2>
+        <div style={{ color: "black" }}>{localDate}</div>
       </div>
 
       <h3 className="pattern-time">
         {patternName} / {timeframe}
       </h3>
-      <div className={sentimentClassName}> {sentiment}</div>
+      <div
+        className={sentimentClassName}
+        style={{
+          color: sentiment === "Bullish" ? "green" : "red",
+          fontWeight: "bold",
+          marginBottom: "10px",
+        }}
+      >
+        {" "}
+        {sentiment}
+      </div>
 
       <div>
-        <div>Price when caught: ${latestPrice}</div>
-        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>Current Price: <p className={priceClass} style={{marginLeft: '3px'}}> ${currPrice}</p> <p style={{color: currPrice > latestPrice ? 'green' : 'red', fontWeight: 'bold', fontSize: '20px'}}>{currPrice > latestPrice ? '↑' : '↓'} ${(currPrice - latestPrice).toFixed(2)}</p></div>
+        <div style={{ color: "black" }}>
+          Price when caught: ${latestPrice}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            color: "black",
+          }}
+        >
+          Current Price:{" "}
+          <p className={priceClass} style={{ marginLeft: "3px" }}>
+            {" "}
+            ${currPrice}
+          </p>{" "}
+          <p
+            style={{
+              color: currPrice > latestPrice ? "green" : "red",
+              fontWeight: "bold",
+              fontSize: "20px",
+            }}
+          >
+            {currPrice > latestPrice ? "↑" : "↓"} $
+            {(currPrice - latestPrice).toFixed(2)}
+          </p>
+        </div>
       </div>
     </div>
   );

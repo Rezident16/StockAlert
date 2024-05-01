@@ -18,15 +18,16 @@ function App() {
   return (
     <>
       <Navigation isLoaded={isLoaded} />
+      {/* <StockList /> */}
       {isLoaded && (
         <Switch>
           <Route path="/login">
             <LoginFormPage />
           </Route>
-          <Route path="/stock/:id/news">
+          <Route path="/stocks/:id/news">
             <StockNews />
           </Route>
-          <Route path="/stock/:id/patterns">
+          <Route path="/stocks/:id/patterns">
             <StockPatterns />
           </Route>
           <Route path="/stocks">
