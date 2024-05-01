@@ -1,314 +1,38 @@
-.demo_login {
-    display: flex;
-    flex-direction: row;
-    /* background-color: black; */
-    color: black;
-    border-radius: 5px;
-    width: 150px;
-    height: 35px;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 5px;
-    font-weight: bold;
-}
-
-.demo_login:hover {
-    text-decoration: underline;
-}
-
-.login_input {
-    width: 200px;
-    height: 20px;
-}
-
-.form_container {
+.google_image_container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px 20px;
-    background-color: whitesmoke;
+    justify-content: center;
     width: 300px;
-    overflow-x: hidden;
-    height: fit-content;
-}
+    height: 200px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #4A154B;
+    color: white;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  .google_image_container h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+  }
 
-.form_label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-}
+  .google_image_container img {
+    width: 100%;
+    /* max-width: 150px; */
+    height: auto;
+  }
 
-.errors {
-    color: red;
+  .google_image_container a {
     display: flex;
-    align-items: center;
-    flex-direction: column;
-    font-size: 13px;
-}
-
-.errors_login_container {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: fit-content;
-}
-
-.errors_login_container_none {
-    width: 0px;
-    height: 0px;
-}
-
-.login_signup_input {
-    /* border-radius: 5px; */
-    border: 1px solid gray;
-    width: 130px;
-}
-
-.login_signup_button {
-    display: flex;
-    flex-direction: row;
-    background-color: black;
-    color: white;
+    width: 100%;
+    height: 50px;
     border-radius: 5px;
-    width: 150px;
-    height: 35px;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 25px;
-}
-
-.login_signup_textarea {
-    /* border-radius: 5px; */
-    border: 1px solid gray;
-    width: 420px;
-    height: 147px;
-}
-
-.password_form {
-    display: flex;
-    width: 100%;
-    gap: 15px;
-}
-
-/* .image_file_container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-} */
-
-/* .custom-button {
-    display: flex;
-    flex-direction: row;
-    background-color: black;
-    color: white;
-    border-radius: 25px;
-    width: 150px;
-    height: 35px;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 25px;
-} */
-
-/* #fileName {
-
-}
-
-.file_input {
-    position: relative;
-    display: inline-block;
-}
-
-.file_input input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-  } */
-
-  .file_input {
-    display: flex;
-    flex-direction: column;
-    margin-top: 10px;
-    margin-left: 2px;
-  }
-
-.image_file_container {
-    /* position: relative; */
-    /* left: 50%; */
-}
-
-input::file-selector-button {
-    border: none;
-  color: inherit;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  position: relative;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-  width: 200px;
-  height: 30px;
-  border: 1px solid gray;
-  margin-top: 2px;
-  background-color: white;
-}
-
-.image_file_container::file-selector-button:hover {
-    /* background-color: orange; */
-  color: black;
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.signup_input {
-    width: 400px;
-    height: 25px;
-}
-
-.signup_login_button {
-    font-weight: bold;
-    color: white;
-    padding: 0.5em;
-    /* border-radius: 5px; */
-    background-color: black;
-    margin-bottom: 10px;
-    width: 200px;
-    cursor: pointer;
-    border: none;
-}
-
-.signup_login_button:hover {
-    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.disabled_signup_login_button {
-    font-weight: bold;
-    color: black;
-    padding: 0.5em;
-    /* border-radius: 5px; */
-    background-color: rgba(0, 0, 0, 0.14);
-    margin-bottom: 10px;
-    width: 200px;
-    cursor:default;
-    pointer-events: none;
-    justify-self: flex-end;
-    border: none;
-}
-
-.form_container_signup {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: whitesmoke;
-    /* width: 70vh; */
-    /* width: 300px; */
-    overflow-x: hidden;
-    height: fit-content;
-    height: 80vh;
-}
-
-.form_container_login{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 6px 6px;
-    background-color: white;
-    overflow-x: hidden;
-    height: fit-content;
-}
-
-.signup_form_container {
-    overflow-inline: hidden;
-    height: 90vh;
-}
-
-.address_city_state {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-}
-
-.city_input {
-    width: 280px;
-    height: 25px;
-}
-
-.state {
-    height: 28px;
-}
-
-.about_password {
-    display: flex;
-    flex-direction: row;
-    gap: 15px;
-}
-
-.confirm_password {
-    margin-bottom: 15px;
-}
-
-#profile_form_img {
-    width: 80px;
-    height: 100px;
-}
-
-.button_field {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-}
-
-.image_placeholder_signup {
-    height: 150px;
-}
-
-::-webkit-scrollbar {
-    display: none;
-}
-
-.tooltip {
-    position: relative;
-    display: inline-block;
-  }
-  
-  /* Tooltip text */
-  .tooltip .tooltiptext {
-    visibility: hidden;
-    background-color: gray;
-    width: 200px;
-    color: white;
-    text-align: center;
-    padding: 5px 0;
-    border-radius: 6px;
-    position: relative;
-    top: -70px;
-    /* left: 120px; */
-   
-    position: absolute;
-    z-index: 1;
-  }
-  
-  /* Show the tooltip text when you mouse over the tooltip container */
-  .tooltip:hover .tooltiptext {
-    visibility: visible;
+    text-decoration: none;
   }

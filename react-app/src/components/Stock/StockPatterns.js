@@ -11,7 +11,10 @@ function StockPatterns() {
   const stock = useParams();
   const dispatch = useDispatch();
   const currPatterns = useSelector((state) => state.patterns.patterns);
-  let [patterns, setPatterns] = useState([]);
+  const [patterns, setPatterns] = useState([]);
+  const currPrice = useSelector((state) => state.price.price);
+  const [price, setPrice] = useState(currPrice);
+  const [priceClass, setPriceClass] = useState("neutral-price");
 
   useEffect(() => {
     setPatterns(currPatterns);
@@ -35,7 +38,7 @@ function StockPatterns() {
 
     socket.on("patterns", (newPattern) => {
       console.log("New stock pattern emitted:", newPattern);
-      if (newPattern.stock_id == stock.id) {
+      if (newPattern.stock_id === stock.id) {
         setPatterns((prevPatterns) => [...prevPatterns, newPattern]);
       }
     });
@@ -43,12 +46,7 @@ function StockPatterns() {
     return () => {
       socket.disconnect();
     };
-  }, []);
-
-  let currPrice = useSelector((state) => state.price.price);
-
-  const [price, setPrice] = useState(currPrice);
-  const [priceClass, setPriceClass] = useState("neutral-price");
+  }, [stock.id]);
 
   useEffect(() => {
     if (price > currPrice) {
@@ -64,21 +62,21 @@ function StockPatterns() {
 
   useEffect(() => {
     setTimeout(() => setPrice(currPrice), 3000);
-    // setPrice(currPrice);
   }, [currPrice]);
 
   if (!patterns) {
     return null;
   }
-  patterns = patterns.sort((a, b) => b.milliseconds - a.milliseconds);
+
+  const sortedPatterns = patterns.sort((a, b) => b.milliseconds - a.milliseconds);
   return (
     <div className="container">
       <div className="stock-list">
         <StockList />
       </div>
       <div className="patterns">
-        {patterns.map((pattern) => (
-          <div>
+        {sortedPatterns.map((pattern, index) => (
+          <div key={index}>
             <PatternTile
               pattern={pattern}
               currPrice={currPrice}
