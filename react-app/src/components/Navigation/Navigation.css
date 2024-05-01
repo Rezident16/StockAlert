@@ -17,160 +17,11 @@
   height: 100%;
   margin: 0px;
   padding: 16px;
-  /* margin-bottom: 15px; */
   border-bottom: 1px solid gray;
-  /* position: sticky; */
   top: 0;
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.06);
   z-index: 1;
 }
-
-.logo {
-  height: 40px;
-}
-
-.left_nav {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: black;
-  font-size: 25px;
-
-}
-
-.logo_text {
-  text-decoration: none;
-  /* color: linen; */
-}
-
-.logo_text_parent {
-  display: flex;
-}
-
-.navigation_buttons {
-  border: none;
-  font-family: 'Lato';
-  font-size: inherit;
-  color: inherit;
-  background: none;
-  cursor: pointer;
-  display: inline-block;
-  /* margin: 15px 30px; */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-  outline: none;
-  position: relative;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-  width: 150px;
-  height: 35px;
-  border: 1px solid black;
-  border-radius: 5px;
-}
-
-.navigation_buttons:hover {
-  background-color: black;
-  color: white;
-  width: 150px;
-  height: 35px;
-  border-radius: 5px;
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.open_modal_div {
-  display: flex;
-  gap: 5px;
-}
-
-
-.login_signup_buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 15px;
-}
-
-#nav-buttons {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  gap: 15px;
-  align-items: center;
-}
-
-.modal_div_text {
-  font-size: 15px;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-}
-
-
-
-/* .navigation_buttons_cart {
-  display: flex;
-  flex-direction: row;
-  background-color: black;
-  color: white;
-  border-radius: 5px;
-  width: 155px;
-  height: 35px;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  cursor: pointer;
-} */
-
-
-.navigation_buttons_cart {
-  border: none;
-  font-family: 'Lato';
-  font-size: inherit;
-  color: inherit;
-  background: none;
-  cursor: pointer;
-  display: inline-block;
-  /* margin: 15px 30px; */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-  outline: none;
-  position: relative;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-  width: 150px;
-  height: 35px;
-  border: 1px solid black;
-  border-radius: 5px;
-}
-
-.navigation_buttons_cart:hover {
-  background-color: black;
-  color: white;
-  width: 150px;
-  height: 35px;
-  border-radius: 5px;
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.navigation_buttons_cart:active {
-  background: white;
-  color: black;
-}
-
-.search_bar_component {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search_bar_component_logged_out {
-  display: none;
-}
-
-
 
 .profile-dropdown {
   position: absolute;
@@ -190,92 +41,30 @@
   margin-top: 9px;
   flex-direction: column;
   gap: 2px;
-  /* display: flex; */
   align-items: center;
   text-align: center;
+}
+
+.logo {
+  height: 40px;
+}
+
+.left_nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: black;
+  font-size: 25px;
+
+}
+
+.logo_text_parent {
+  display: flex;
 }
 
 #hamburger {
   background-color: white;
   border: none;
 }
-
-.seperator {
-  border: 0.5px solid gray;
-  width: 100%;
-}
-
-.hamburger_buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.profile_text {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.profile_button {
-  border: none;
-  color: inherit;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  position: relative;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-  width: 150px;
-  height: 25px;
-  border: 1px solid black;
-  border-radius: 5px;
-}
-
-.logout_button {
-  /* display: flex; */
-  border: none;
-  color: inherit;
-  background: none;
-  background-color: orange;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  position: relative;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-  width: 150px;
-  height: 25px;
-  border: 1px solid black;
-  border-radius: 5px;
-  margin-top: 25px;
-}
-
-.profile_button:hover {
-  background-color: orange;
-  color: black;
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.profile_button:active {
-  background: white;
-  color: black;
-}
-
-.logout_button:hover {
-  background-color: white;
-  color: black;
-  box-shadow: 3px 3px 5px hsl(39, 100%, 50%, 0.3);
-}
-
-/* .logout_button:active {
-  background-color: red;
-} */

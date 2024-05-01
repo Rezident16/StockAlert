@@ -6,6 +6,7 @@ import { authenticate } from "./store/session";
 import Navigation from "./components/Navigation";
 import StockNews from "./components/Stock/StockNews";
 import StockPatterns from "./components/Stock/StockPatterns";
+import StockList from "./components/Stock/Stocks";
 
 function App() {
   const dispatch = useDispatch();
@@ -27,6 +28,9 @@ function App() {
           </Route>
           <Route path="/stock/:id/patterns">
             <StockPatterns />
+          </Route>
+          <Route path="/stocks">
+            <StockList />
           </Route>
         </Switch>
       )}

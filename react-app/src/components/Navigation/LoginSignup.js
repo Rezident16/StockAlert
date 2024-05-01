@@ -1,8 +1,6 @@
 import OpenModalButton from "../OpenModalButton";
 import LoginFormModal from "../LoginFormModal";
-import Signup_main from "../SignupFormModal";
 import { useHistory } from "react-router-dom";
-import SignupFormModal from "../SignupFormModal/manual";
 
 
 function LoginSignup({closeMenu}) {
@@ -13,7 +11,12 @@ function LoginSignup({closeMenu}) {
   }
   return (
     <div className="login_signup_buttons">
-LoginSignup
+          <OpenModalButton
+            className={"navigation_buttons"}
+            buttonText="Log In"
+            onItemClick={closeMenu}
+            modalComponent={<LoginFormModal />}
+          />
         </div>
   );
 }

@@ -1,5 +1,6 @@
 const GET_STOCKS = "stock/GET_STOCKS";
 
+
 const getStocks = (stocks) => ({
     type: GET_STOCKS,
     stocks,
@@ -18,10 +19,7 @@ const initialState = { stocks: [] };
 export default function stockReducer(state = initialState, action) {
     switch (action.type) {
         case 'stock/GET_STOCKS':
-          return {
-            ...state,
-            stocks: [...action.stocks]
-          };
+          return action.stocks;
         default:
           return state;
       }
