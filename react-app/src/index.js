@@ -6,7 +6,7 @@ import { ModalProvider, Modal } from "./context/Modal";
 import configureStore from "./store";
 import * as sessionActions from "./store/session";
 import App from "./App";
-import { fetchData } from "./patterns";
+import { fetchData, fetchNewsData } from "./patterns";
 
 import "./index.css";
 
@@ -16,7 +16,8 @@ if (process.env.NODE_ENV !== "production") {
 	window.store = store;
 	window.sessionActions = sessionActions;
 }
-fetchData(); 
+// fetchData(); 
+fetchNewsData()
 
 // Wrap the application with the Modal provider and render the Modal component
 // after the App component so that all the Modal content will be layered as

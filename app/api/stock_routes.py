@@ -41,6 +41,16 @@ def get_stock_news(id):
     return jsonify(formatted_news)
     # return stock.to_dict()
 
+@stock_routes.route('/news')
+def get_all_news():
+    all_news = []
+    stocks = Stock.query.all()
+    for stock in stocks:
+        news = estimate_sentiment(stock)
+        formatted_news = format_news(news)
+        all_news.append(formatted_news)
+    return jsonify([n.to_dict_self() for n in all_news])
+
 @stock_routes.route('/<int:id>/stock_price')
 def get_stock_price(id):
     stock = Stock.query.get(id)

@@ -11,7 +11,7 @@ export const fetchData = () => {
     fetch(`http://localhost:5000/api/stocks/get_patterns/${id}`)
       .then((response) => response.json())
       .then((data) => {
-        // Store the data in a global state or in local storage here
+        
       })
       .catch((error) => {
         console.error(error);
@@ -28,4 +28,19 @@ export const fetchData = () => {
   });
 };
 
-fetchData();
+export const fetchNewsData = () => {
+  const fetchNews = () => {
+    fetch("http://localhost:5000/api/stocks/get_all_news")
+      .then((response) => response.json())
+      .then((data) => {
+        
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setTimeout(fetchNews, 3600000);
+      });
+  }}
+
+// fetchData();
