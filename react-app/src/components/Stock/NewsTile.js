@@ -7,7 +7,6 @@ function NewsTile({ news }) {
       : news.sentiment === "negative"
       ? "sentiment negative"
       : "sentiment neutral";
-  console.log("we are here");
   return (
     <div className="stock-tile" style={{ position: "relative" }}>
       <div

@@ -23,7 +23,6 @@ export const fetchData = () => {
 
   Object.keys(timeframes).forEach((id) => {
     const timeout = parseInt(timeframes[id]);
-    console.log(timeout)
     fetchPattern(id, timeout);
   });
 };

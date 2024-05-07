@@ -6,6 +6,7 @@ import PatternTile from "./PatternTile";
 import { getStockPriceThunk } from "../../store/stockPrice";
 import io from "socket.io-client";
 import StockList from "./Stocks";
+import StockChart from "./StockChart/StockChart";
 
 function StockPatterns() {
   const stock = useParams();
@@ -23,7 +24,6 @@ function StockPatterns() {
   useEffect(() => {
     dispatch(getStockPatternsThunk(stock.id));
     const intervalId = setInterval(() => {
-      console.log("fetching stock price");
       dispatch(getStockPriceThunk(stock.id));
     }, 5000);
     return () => clearInterval(intervalId);
@@ -33,11 +33,9 @@ function StockPatterns() {
     const socket = io("http://localhost:5000/patterns");
 
     socket.on("connect", () => {
-      console.log("Connected to server");
     });
 
     socket.on("patterns", (newPattern) => {
-      console.log("New stock pattern emitted:", newPattern);
       if (newPattern.stock_id === stock.id) {
         setPatterns((prevPatterns) => [...prevPatterns, newPattern]);
       }
@@ -75,6 +73,7 @@ function StockPatterns() {
         <StockList />
       </div>
       <div className="patterns">
+        <StockChart id={stock.id} />
         {sortedPatterns.map((pattern, index) => (
           <div key={index}>
             <PatternTile

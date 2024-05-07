@@ -21,7 +21,6 @@ function StockNews() {
     const newSocket = io.connect("localhost:5000/news");
     setSocket(newSocket);
     newSocket.on("news", (newsData) => {
-      console.log("Received news:", newsData);
     });
     return () => {
       newSocket.close();

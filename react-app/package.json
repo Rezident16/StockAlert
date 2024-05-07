@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@finos/perspective": "^2.10.0",
     "@react-google-maps/api": "^2.19.3",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
@@ -19,9 +20,11 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.3",
     "react-search-box": "^3.0.0",
+    "recharts": "^2.12.6",
     "redux": "^4.1.0",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
+    "socket.io-client": "^4.7.5",
     "talib": "^1.1.5",
     "yahoo-finance2": "^2.11.2"
   },

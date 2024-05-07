@@ -8,6 +8,7 @@ import PatternTile from "./PatternTile";
 import NewsTile from "./NewsTile";
 import io from "socket.io-client";
 import StockList from "./Stocks";
+import StockChart from "./StockChart/StockChart";
 
 const useFetchData = (id, thunk, interval = 5000) => {
   const dispatch = useDispatch();
@@ -86,6 +87,7 @@ function NewsPatterns() {
         <StockList />
       </div>
       <div className="patterns">
+        <StockChart id={id} />
         {newsAndStocks.map((newsOrPattern) => {
           if (newsOrPattern.pattern_name) {
             return (

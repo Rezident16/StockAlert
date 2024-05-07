@@ -9,7 +9,6 @@ export const getStockPatternsThunk = (id) => async (dispatch) => {
     const response = await fetch(`/api/stocks/${id}/patterns`);
     if (response.ok) {
         const data = await response.json();
-        console.log(data, 'data')
         dispatch(getStockPatterns(data));
     }
 }
