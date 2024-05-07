@@ -7,6 +7,7 @@ import Navigation from "./components/Navigation";
 import StockNews from "./components/Stock/StockNews";
 import StockPatterns from "./components/Stock/StockPatterns";
 import StockList from "./components/Stock/Stocks";
+import NewsPatterns from "./components/Stock/NewsPatters";
 
 function App() {
   const dispatch = useDispatch();
@@ -24,15 +25,18 @@ function App() {
           <Route path="/login">
             <LoginFormPage />
           </Route>
-          <Route path="/stocks/:id/news">
-            <StockNews />
+          <Route path="/stocks/:id/">
+          <NewsPatterns />
           </Route>
-          <Route path="/stocks/:id/patterns">
+          {/* <Route path="/stocks/:id/patterns">
             <StockPatterns />
           </Route>
           <Route path="/stocks">
             <StockList />
           </Route>
+          <Route path="/test/:id">
+            <NewsPatterns />
+          </Route> */}
         </Switch>
       )}
     </>

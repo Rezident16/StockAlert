@@ -33,7 +33,7 @@ function StockList() {
         >
           <p
             className="stock-name"
-            onClick={() => history.push(`/stocks/${stock.id}/patterns`)}
+            onClick={() => history.push(`/stocks/${stock.id}`)}
             style={{ color: "#D3D3D3", cursor: "pointer" }}
           >
             {stock.symbol}

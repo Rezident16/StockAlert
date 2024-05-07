@@ -16,7 +16,7 @@ if (process.env.NODE_ENV !== "production") {
 	window.store = store;
 	window.sessionActions = sessionActions;
 }
-// fetchData(); 
+fetchData();
 fetchNewsData()
 
 // Wrap the application with the Modal provider and render the Modal component

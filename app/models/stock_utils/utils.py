@@ -35,8 +35,8 @@ ALPACA_CREDS = {
 def fetch_news(stock):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
     today = datetime.now().date()
-    yesterday = today - timedelta(days=1)
-    return api.get_news(stock.symbol, end=today.strftime('%Y-%m-%d'), start=yesterday.strftime('%Y-%m-%d'))
+    week_prior = today - timedelta(days=7)
+    return api.get_news(stock.symbol, end=today.strftime('%Y-%m-%d'), start=week_prior.strftime('%Y-%m-%d'))
 
 def estimate_news_sentiment(news):
     news_and_sentiment = []

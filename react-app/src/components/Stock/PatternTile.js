@@ -13,13 +13,24 @@ function PatternTile({ pattern, currPrice, priceClass }) {
   const sentimentClassName =
     sentiment === "Bullish" ? "positive pattern" : "negative pattern";
   const latestPrice = pattern.latest_price.toFixed(2);
+
   return (
-    <div
-      className="pattern-container"
-    >
+    <div className="pattern-container" style={{ position: "relative" }}>
       <div
-        className="stock-date"
+        style={{
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          padding: "2px 15px",
+          fontSize: "14px",
+          backgroundColor: "#f9d51282",
+          border: "1px solid #dee2e6",
+          borderRadius: "5px",
+        }}
       >
+        Pattern
+      </div>
+      <div className="stock-date">
         <h2 style={{ margin: "0", color: "#2C2D30" }}>{stock}</h2>
         <div style={{ color: "black" }}>{localDate}</div>
       </div>
@@ -40,9 +51,7 @@ function PatternTile({ pattern, currPrice, priceClass }) {
       </div>
 
       <div>
-        <div style={{ color: "black" }}>
-          Price when caught: ${latestPrice}
-        </div>
+        <div style={{ color: "black" }}>Price when caught: ${latestPrice}</div>
         <div
           style={{
             display: "flex",
