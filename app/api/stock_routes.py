@@ -60,36 +60,40 @@ def get_stock_price(id):
 # BARS
 def bar_to_dict(bar):
     return {
-        'close': bar.c,
-        'high': bar.h,
-        'low': bar.l,
-        'open': bar.o,
+        'close': round(bar.c, 2),
+        'high': round(bar.h, 2),
+        'low': round(bar.l,2),
+        'open': round(bar.o, 2),
         "date": bar.t,
     }
+
+timeframes = {
+    0: '1Min', # '1Min
+    1: '15Min',
+    2: '30Min',
+    3: '1Hour',
+    4: '1Day',
+    5: '1Week',
+}
+
+def get_timeframe_and_barset(id, stock):
+    if id not in timeframes:
+        return 'Invalid id', 400, None
+
+    timeframe = timeframes[id]
+    barset = get_barset(stock, timeframe)
+    json_barset = [bar_to_dict(bar) for bar in barset]
+    return timeframe, json_barset
+
 @stock_routes.route('/get_patterns/<int:id>')
 def get_stocks_patterns(id):
     stocks = Stock.query.all()
-    timeframes = {
-        1: '15Min',
-        2: '30Min',
-        3: '1Hour',
-        4: '1Day',
-        5: '1Week'
-    }
-
-    # Check if the id is in the timeframes dictionary
-    if id not in timeframes:
-        return 'Invalid id', 400
-
-    timeframe = timeframes[id]
-
     res = []
     for stock in stocks:
-        barset = get_barset(stock, timeframe)
-        json_barset = [bar_to_dict(bar) for bar in barset]
+        timeframe, json_barset = get_timeframe_and_barset(id, stock)
+        if timeframe == 'Invalid id':
+            return timeframe, 400
         res.append(check_patterns(json_barset, stock, timeframe))
-
-    # return 'done'
 
 
 @stock_routes.route('/<int:id>/patterns')

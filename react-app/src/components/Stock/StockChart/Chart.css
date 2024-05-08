@@ -1,0 +1,34 @@
+.timeframe-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 20%;
+}
+
+.active-timeframe-button {
+    color: #00c805;
+    border: none;
+    font-weight: bold;
+    width: 100%;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0px 10px;
+    border-bottom: 1px solid #00c805;
+    text-align: center;
+    display: inline-block;
+    font-size: 14px;
+}
+
+.inactive-timeframe-button {
+    color: black;
+    border: none;
+    font-weight: bold;
+    width: 100%;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0px 10px;
+    text-align: center;
+    display: inline-block;
+    font-size: 14px;
+}

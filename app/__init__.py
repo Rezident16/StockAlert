@@ -98,6 +98,7 @@ from .models import db, User
 from .seeds import seed_commands
 from .api.auth_routes import auth_routes
 from .api.stock_routes import stock_routes
+from .api.chart_routes import chart_routes
 
 # Initialize your Flask app
 app = Flask(__name__, static_folder='../react-app/build', static_url_path='/')
@@ -123,6 +124,7 @@ app.config.from_object(Config)
 
 app.register_blueprint(auth_routes, url_prefix='/api/auth')
 app.register_blueprint(stock_routes, url_prefix='/api/stocks')
+app.register_blueprint(chart_routes, url_prefix='/api/charts')
 
 db.init_app(app)
 Migrate(app, db)
