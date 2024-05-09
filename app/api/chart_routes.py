@@ -3,6 +3,8 @@ from app.models import *
 from datetime import datetime
 import json
 from app.models.stock_utils.chart_utils import get_barset
+from app.models.stock_utils.utils import check_patterns
+from sqlalchemy import and_
 
 
 chart_routes = Blueprint('charts', __name__)
@@ -44,3 +46,31 @@ def get_stock_bars(id, timeframe):
     if timeframe == 'Invalid id':
         return timeframe, 400
     return jsonify(json_barset)
+
+# Timeframes
+    # 1: '15Min' 1D
+    # 2: '30Min' 1D
+    # 3: '1Hour' 1W 1M
+    # 4: '1Day' 3M 1Y YTD
+    # 5: '1Week' 5Y
+
+pattern_timeframes = {
+    '1D' : ['15Min', '30Min'],
+    '1W' : ['1Hour'],
+    '1M' : ['1Hour'],
+    '3M' : ['1Day'],
+    '1Y' : ['1Day'],
+    '5Y' : ['1Week'],
+    'YTD': ['1Day']
+}
+
+@chart_routes.route('/<int:id>/patterns/<int:timeframeId>')
+def get_stock_patterns_chart(id, timeframeId):
+    stock = Stock.query.get(id)
+    timeframe = timeframes[timeframeId]
+    pattern_timeframe = pattern_timeframes[timeframe]
+    patterns = Pattern.query.filter(
+    Pattern.stock_id == stock.id,
+    Pattern.timeframe.in_(pattern_timeframe)
+).all()
+    return {'patterns': [pattern.to_dict_stock() for pattern in patterns]}

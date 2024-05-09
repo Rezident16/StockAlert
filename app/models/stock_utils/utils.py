@@ -15,8 +15,12 @@ from ..db import db
 from ..stock import Stock
 import alpaca
 import lumibot
+from dateutil.relativedelta import relativedelta
+import redis
+import pickle
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
 model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert").to(device)
@@ -92,16 +96,8 @@ def estimate_sentiment(stock):
     return news_and_sentiment
 
 
-
-def get_dates(prev): 
-        today = datetime.now().date() - timedelta(days=1)
-        prior = today - timedelta(days=prev + 1)
-        prioWeekly = today - timedelta(days=(prev*4))
-        return today.strftime('%Y-%m-%d'), prior.strftime('%Y-%m-%d'), prioWeekly.strftime('%Y-%m-%d')
-
 def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
-    today, priorDates, prioWeeklyDates = get_dates(30)
     
     if timeFrameChosen == '15Min':
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame(15, TimeFrameUnit.Minute), limit=100) # 15 Min timeframe
@@ -110,9 +106,11 @@ def get_barset(stock, timeFrameChosen):
     elif timeFrameChosen == '1Hour':
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame.Hour, limit=100) # Hourly timeframe
     elif timeFrameChosen == '1Day':
-        barset = api.get_bars(stock.symbol, TimeFrame.Day, start=priorDates, end=today, limit=100) # Daily timeframe
+        barset = api.get_bars(stock.symbol, TimeFrame.Day, limit=367) # Daily timeframe
+        # barset = api.get_bars(stock.symbol, TimeFrame.Day, start=priorDates, end=today, limit=100)
     else:
-        barset = api.get_bars(stock.symbol, TimeFrame.Week, start=prioWeeklyDates, end=today, limit=100) # Weekly timeframe
+        barset = api.get_bars(stock.symbol, TimeFrame.Week, limit=220) # Weekly timeframe
+        # barset = api.get_bars(stock.symbol, TimeFrame.Week, start=prioWeeklyDates, end=today, limit=100)
     return barset
 
 
@@ -121,10 +119,10 @@ def convert_date_to_milliseconds(date_timestamp):
 
 
 def extract_data(barset):
-    open = np.array([bar['open'] for bar in barset])
-    high = np.array([bar['high'] for bar in barset])
-    low = np.array([bar['low'] for bar in barset])
-    close = np.array([bar['close'] for bar in barset])
+    open = np.array([bar['open'] for bar in barset]).astype('double')
+    high = np.array([bar['high'] for bar in barset]).astype('double')
+    low = np.array([bar['low'] for bar in barset]).astype('double')
+    close = np.array([bar['close'] for bar in barset]).astype('double')
     date = np.array([bar['date'] for bar in barset])
     return open, high, low, close, date
 
@@ -141,13 +139,29 @@ def create_results(result_list, date, pattern, stock, timeframe, close):
     ]
 
 def query_existing_pattern(stock, bullish_bearish_result, pattern, timeframe):
-    return Pattern.query.filter_by(
-        stock_id=stock.id,
-        milliseconds=bullish_bearish_result[0]['milliseconds'],
-        pattern_name=pattern,
-        sentiment=bullish_bearish_result[0]['sentiment'],
-        timeframe = timeframe
-    ).first()
+    # Create a unique key for this query
+    key = f"pattern:{stock.id}:{bullish_bearish_result[0]['milliseconds']}:{pattern}:{bullish_bearish_result[0]['sentiment']}:{timeframe}"
+
+    # Try to get the result from Redis
+    result = r.get(key)
+
+    if result is not None:
+        # If the result is in Redis, unpickle it and return it
+        return pickle.loads(result)
+    else:
+        # If the result is not in Redis, query the database
+        result = Pattern.query.filter_by(
+            stock_id=stock.id,
+            milliseconds=bullish_bearish_result[0]['milliseconds'],
+            pattern_name=pattern,
+            sentiment=bullish_bearish_result[0]['sentiment'],
+            timeframe = timeframe
+        ).first()
+
+        # Store the result in Redis
+        r.set(key, pickle.dumps(result))
+
+        return result
 
 def create_pattern_instance(stock, bullish_bearish_result, pattern, timeframe):
     return Pattern(

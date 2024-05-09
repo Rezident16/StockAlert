@@ -32,3 +32,49 @@
     display: inline-block;
     font-size: 14px;
 }
+
+.custom-tooltip {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+.custom-tooltip > .label {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+.custom-tooltip > .intro {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+.custom-tooltip > .open {
+    color: #82ca9d;
+}
+
+.custom-tooltip > .close {
+    color: #8884d8;
+}
+
+.tooltip-patterns {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px;
+}
+
+.tooltip-patterns > .desc {
+    margin: 2px;
+}
+
+.tooltip-patterns > .bullish {
+    color: rgba(0, 203, 0);
+}
+
+.tooltip-patterns > .bearish {
+    color: rgba(255, 0, 0)
+}

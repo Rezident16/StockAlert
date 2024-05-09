@@ -68,12 +68,11 @@ def bar_to_dict(bar):
     }
 
 timeframes = {
-    0: '1Min', # '1Min
-    1: '15Min',
-    2: '30Min',
+    5: '15Min',
+    4: '30Min',
     3: '1Hour',
-    4: '1Day',
-    5: '1Week',
+    2: '1Day',
+    1: '1Week',
 }
 
 def get_timeframe_and_barset(id, stock):

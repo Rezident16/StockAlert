@@ -16,19 +16,17 @@ ALPACA_CREDS = {
 
 def get_dates(prev): 
     today = datetime.now().date() - timedelta(days=1)
-    prior = today - timedelta(days=prev + 1)
-    prioWeekly = today - timedelta(days=(prev*4))
     one_week_ago = today - timedelta(weeks=1)
     one_month_ago = today - relativedelta(months=1)
     three_month_ago = today - relativedelta(months=3)
     start_of_year = datetime(today.year, 1, 1).date()
     year_ago = today - relativedelta(years=1)
     five_year_ago = today - relativedelta(years=5)
-    return today.strftime('%Y-%m-%d'), prior.strftime('%Y-%m-%d'), prioWeekly.strftime('%Y-%m-%d'), one_week_ago.strftime('%Y-%m-%d'), one_month_ago.strftime('%Y-%m-%d'), three_month_ago.strftime('%Y-%m-%d'), start_of_year.strftime('%Y-%m-%d'), year_ago.strftime('%Y-%m-%d'), five_year_ago.strftime('%Y-%m-%d')
+    return today.strftime('%Y-%m-%d'), one_week_ago.strftime('%Y-%m-%d'), one_month_ago.strftime('%Y-%m-%d'), three_month_ago.strftime('%Y-%m-%d'), start_of_year.strftime('%Y-%m-%d'), year_ago.strftime('%Y-%m-%d'), five_year_ago.strftime('%Y-%m-%d')
 
 def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
-    today, priorDates, prioWeeklyDates, one_week_ago, one_month_ago, three_month_ago, start_of_year, year_ago, five_year_ago = get_dates(30)
+    today, one_week_ago, one_month_ago, three_month_ago, start_of_year, year_ago, five_year_ago = get_dates(30)
     
     if timeFrameChosen == '1D':
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame(1, TimeFrameUnit.Minute), limit=1400)

@@ -1,10 +1,10 @@
 export const fetchData = () => {
   const timeframes = {
-    1: "900000",
-    2: "1800000",
+    5: "900000",
+    4: "1800000",
     3: "3600000",
-    4: "86400000",
-    5: "604800000",
+    2: "86400000",
+    1: "604800000",
   };
 
   const fetchPattern = (id, timeout) => {
@@ -42,4 +42,4 @@ export const fetchNewsData = () => {
       });
   }}
 
-// fetchData();
+fetchData();
