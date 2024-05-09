@@ -18,6 +18,8 @@ import lumibot
 from dateutil.relativedelta import relativedelta
 import redis
 import pickle
+from flask import current_app
+
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 r = redis.Redis(host='localhost', port=6379, db=0)
@@ -95,21 +97,31 @@ def estimate_sentiment(stock):
     store_news_in_db(news_and_sentiment)
     return news_and_sentiment
 
+def get_dates(): 
+    today = datetime.now().date() - timedelta(days=1)
+    one_week_ago = today - timedelta(weeks=1)
+    one_month_ago = today - relativedelta(months=1)
+    three_month_ago = today - relativedelta(months=3)
+    start_of_year = datetime(today.year, 1, 1).date()
+    year_ago = today - relativedelta(years=1)
+    five_year_ago = today - relativedelta(years=5)
+    return today.strftime('%Y-%m-%d'), one_week_ago.strftime('%Y-%m-%d'), one_month_ago.strftime('%Y-%m-%d'), three_month_ago.strftime('%Y-%m-%d'), start_of_year.strftime('%Y-%m-%d'), year_ago.strftime('%Y-%m-%d'), five_year_ago.strftime('%Y-%m-%d')
+    
 
 def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
-    
+    today, one_week_ago, one_month_ago, three_month_ago, start_of_year, year_ago, five_year_ago = get_dates()
     if timeFrameChosen == '15Min':
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame(15, TimeFrameUnit.Minute), limit=100) # 15 Min timeframe
     elif timeFrameChosen == '30Min':
-        barset = api.get_bars(stock.symbol,timeframe=TimeFrame(30, TimeFrameUnit.Minute), limit=100) # 30 Min timeframe
+        barset = api.get_bars(stock.symbol,timeframe=TimeFrame(30, TimeFrameUnit.Minute), limit=50) # 30 Min timeframe
     elif timeFrameChosen == '1Hour':
-        barset = api.get_bars(stock.symbol,timeframe=TimeFrame.Hour, limit=100) # Hourly timeframe
+        barset = api.get_bars(stock.symbol,timeframe=TimeFrame.Hour, start = one_month_ago, limit=750) # Hourly timeframe
     elif timeFrameChosen == '1Day':
-        barset = api.get_bars(stock.symbol, TimeFrame.Day, limit=367) # Daily timeframe
+        barset = api.get_bars(stock.symbol, TimeFrame.Day, start = year_ago , limit=367) # Daily timeframe
         # barset = api.get_bars(stock.symbol, TimeFrame.Day, start=priorDates, end=today, limit=100)
     else:
-        barset = api.get_bars(stock.symbol, TimeFrame.Week, limit=220) # Weekly timeframe
+        barset = api.get_bars(stock.symbol, TimeFrame.Week, start = five_year_ago, limit=264) # Weekly timeframe
         # barset = api.get_bars(stock.symbol, TimeFrame.Week, start=prioWeeklyDates, end=today, limit=100)
     return barset
 
@@ -138,29 +150,25 @@ def create_results(result_list, date, pattern, stock, timeframe, close):
         for i, value in enumerate(result_list) if value >= 100 or value <= -100
     ]
 
-def query_existing_pattern(stock, bullish_bearish_result, pattern, timeframe):
-    # Create a unique key for this query
-    key = f"pattern:{stock.id}:{bullish_bearish_result[0]['milliseconds']}:{pattern}:{bullish_bearish_result[0]['sentiment']}:{timeframe}"
+def cache_all_patterns():
+    with current_app.app_context():
+        # Query all patterns from the database
+        all_patterns = Pattern.query.all()
 
-    # Try to get the result from Redis
+        for pattern in all_patterns:
+            # Create a unique key for each pattern
+            key = f"pattern:{pattern.stock_id}:{pattern.milliseconds}:{pattern.pattern_name}:{pattern.sentiment}:{pattern.timeframe}"
+
+            # Store the pattern in Redis
+            r.set(key, pickle.dumps(pattern))
+def query_existing_pattern(stock, bullish_bearish_result, pattern, timeframe):
+    key = f"pattern:{stock.id}:{bullish_bearish_result[0]['milliseconds']}:{pattern}:{bullish_bearish_result[0]['sentiment']}:{timeframe}"
     result = r.get(key)
 
     if result is not None:
-        # If the result is in Redis, unpickle it and return it
         return pickle.loads(result)
     else:
-        # If the result is not in Redis, query the database
-        result = Pattern.query.filter_by(
-            stock_id=stock.id,
-            milliseconds=bullish_bearish_result[0]['milliseconds'],
-            pattern_name=pattern,
-            sentiment=bullish_bearish_result[0]['sentiment'],
-            timeframe = timeframe
-        ).first()
-
-        # Store the result in Redis
         r.set(key, pickle.dumps(result))
-
         return result
 
 def create_pattern_instance(stock, bullish_bearish_result, pattern, timeframe):
@@ -243,7 +251,6 @@ def check_patterns(barset, stock, timeframe):
         "CDLUPSIDEGAP2CROWS",
         "CDLXSIDEGAP3METHODS"
     ]
-
     results = {}
     for pattern in patterns:
         result_list = check_pattern(pattern, open, high, low, close)
@@ -255,8 +262,11 @@ def check_patterns(barset, stock, timeframe):
             if existing_pattern is None:
                 pattern_instance = create_pattern_instance(stock, bullish_bearish_result, pattern, timeframe)
                 db.session.add(pattern_instance)
+                key = f"pattern:{stock.id}:{bullish_bearish_result[0]['milliseconds']}:{pattern}:{bullish_bearish_result[0]['sentiment']}:{timeframe}"
+                r.set(key, pickle.dumps(pattern_instance))
                 patterns_namespace.emit('patterns', pattern_instance.to_dict_stock(), namespace='/patterns')
             results[pattern] = bullish_bearish_result
+            
     db.session.commit()
 
 def get_price(stock):

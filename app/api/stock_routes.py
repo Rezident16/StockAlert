@@ -68,11 +68,11 @@ def bar_to_dict(bar):
     }
 
 timeframes = {
-    5: '15Min',
-    4: '30Min',
+    1: '15Min',
+    2: '30Min',
     3: '1Hour',
-    2: '1Day',
-    1: '1Week',
+    4: '1Day',
+    5: '1Week',
 }
 
 def get_timeframe_and_barset(id, stock):
@@ -89,10 +89,12 @@ def get_stocks_patterns(id):
     stocks = Stock.query.all()
     res = []
     for stock in stocks:
-        timeframe, json_barset = get_timeframe_and_barset(id, stock)
-        if timeframe == 'Invalid id':
-            return timeframe, 400
+        result = get_timeframe_and_barset(id, stock)
+        if result[0] == 'Invalid id':
+            return
+        timeframe, json_barset = result[0], result[1]
         res.append(check_patterns(json_barset, stock, timeframe))
+    return res
 
 
 @stock_routes.route('/<int:id>/patterns')

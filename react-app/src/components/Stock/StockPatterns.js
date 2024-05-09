@@ -73,9 +73,11 @@ function StockPatterns() {
         <StockList />
       </div>
       <div className="patterns">
-        <StockChart id={stock.id} />
+        <StockChart id={stock.id} 
+        />
         {sortedPatterns.map((pattern, index) => (
-          <div key={index}>
+          <div key={index}
+          >
             <PatternTile
               pattern={pattern}
               currPrice={currPrice}

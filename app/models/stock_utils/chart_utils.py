@@ -14,7 +14,7 @@ ALPACA_CREDS = {
     "API_SECRET": API_SECRET, 
 }
 
-def get_dates(prev): 
+def get_dates(): 
     today = datetime.now().date() - timedelta(days=1)
     one_week_ago = today - timedelta(weeks=1)
     one_month_ago = today - relativedelta(months=1)
@@ -26,7 +26,7 @@ def get_dates(prev):
 
 def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)
-    today, one_week_ago, one_month_ago, three_month_ago, start_of_year, year_ago, five_year_ago = get_dates(30)
+    today, one_week_ago, one_month_ago, three_month_ago, start_of_year, year_ago, five_year_ago = get_dates()
     
     if timeFrameChosen == '1D':
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame(1, TimeFrameUnit.Minute), limit=1400)
