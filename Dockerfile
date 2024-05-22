@@ -9,6 +9,7 @@ RUN apk add postgresql-dev gcc python3-dev musl-dev
 RUN apk add gfortran
 RUN apk add openblas-dev
 RUN apk add libxml2-dev libxslt-dev musl-dev
+RUN apk add --no-cache gcc g++ make cmake autoconf boost-dev python3-dev
 ARG FLASK_APP
 ARG FLASK_ENV
 ARG DATABASE_URL
