@@ -6,6 +6,7 @@ RUN npm install && CI=false && npm run build
 FROM python:3.9.18-alpine3.18
 RUN apk add build-base
 RUN apk add postgresql-dev gcc python3-dev musl-dev
+RUN apk add gfortran
 ARG FLASK_APP
 ARG FLASK_ENV
 ARG DATABASE_URL
