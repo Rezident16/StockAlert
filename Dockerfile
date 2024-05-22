@@ -11,6 +11,7 @@ ARG DATABASE_URL
 ARG SCHEMA
 ARG REACT_APP_BASE_URL
 ARG SECRET_KEY
+ENV FLASK_APP=$FLASK_APP
 WORKDIR /var/www
 COPY requirements.txt .
 RUN pip install -r requirements.txt
