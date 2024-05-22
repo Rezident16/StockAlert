@@ -1,15 +1,10 @@
-FROM node:15-alpine3.10 as build
-RUN apk add --update python make g++
+FROM node:15 as build
+RUN apt-get update && apt-get install -y python make g++
 COPY /react-app /react_app
 WORKDIR /react_app
 RUN npm install && CI=false && npm run build
-FROM python:3.9.18-alpine3.18
-RUN apk add build-base
-RUN apk add postgresql-dev gcc python3-dev musl-dev
-RUN apk add gfortran
-RUN apk add openblas-dev
-RUN apk add libxml2-dev libxslt-dev musl-dev
-RUN apk add --no-cache gcc g++ make cmake autoconf boost-dev python3-dev
+FROM python:3.9
+RUN apt-get update && apt-get install -y build-essential postgresql libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev
 ARG FLASK_APP
 ARG FLASK_ENV
 ARG DATABASE_URL
