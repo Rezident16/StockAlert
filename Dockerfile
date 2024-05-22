@@ -1,10 +1,10 @@
 FROM node:15 as build
-RUN apt-get install -y python make g++
+RUN apt-get update && apt-get install -y python make g++
 COPY /react-app /react_app
 WORKDIR /react_app
 RUN npm install && CI=false && npm run build
 FROM python:3.9-slim-buster
-RUN apt-get install -y build-essential postgresql libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev
+RUN apt-get update && apt-get install -y build-essential postgresql libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev
 ARG FLASK_APP
 ARG FLASK_ENV
 ARG DATABASE_URL
