@@ -33,38 +33,7 @@ const useSocket = (id, setItem, endpoint, event) => {
   }, [id, setItem, endpoint, event]);
 };
 
-function NewsPatterns() {
-  const id = useParams().id;
-  const currNews = useSelector((state) => state.news.news);
-  const currPrice = useSelector((state) => state.price.price);
-  const currPatterns = useSelector((state) => state.patterns.patterns);
-  const [patterns, setPatterns] = useState([]);
-  const [news, setNews] = useState([]);
-  const [price, setPrice] = useState(currPrice);
-  const [priceClass, setPriceClass] = useState("neutral-price");
-
-  useFetchData(id, getStockNewsThunk);
-  useFetchData(id, getStockPatternsThunk);
-  useFetchData(id, getStockPriceThunk);
-  useSocket(id, setPatterns, "patterns", "patterns");
-  useSocket(id, setNews, "news", "news");
-
-  useEffect(() => {
-    setPatterns(currPatterns);
-    setNews(currNews);
-  }, [currPatterns, currNews]);
-
-  let newsAndStocks = [...news, ...patterns];
-  newsAndStocks.sort((a, b) => {
-    const aTime = a.created_at
-      ? new Date(a.created_at).getTime()
-      : a.milliseconds;
-    const bTime = b.created_at
-      ? new Date(b.created_at).getTime()
-      : b.milliseconds;
-    return bTime - aTime;
-  });
-
+const usePriceEffect = (price, currPrice, setPriceClass) => {
   useEffect(() => {
     if (price > currPrice) {
       setPriceClass("down-price");
@@ -76,10 +45,43 @@ function NewsPatterns() {
       setPriceClass("neutral-price");
     }
   }, [price, currPrice]);
+};
 
-  useEffect(() => setTimeout(() => setPrice(currPrice), 3000), [currPrice]);
+function NewsPatterns() {
+  const id = useParams().id;
+  const currNews = useSelector((state) => state.news.news);
+  const currPrice = useSelector((state) => state.price.price);
+  const currPatterns = useSelector((state) => state.patterns.patterns);
+  const [patterns, setPatterns] = useState([]);
+  const [news, setNews] = useState([]);
+  const [price, setPrice] = useState(currPrice);
+  const [priceClass, setPriceClass] = useState("neutral-price");
+  const [selectedOption, setSelectedOption] = useState("All");
+
+  useFetchData(id, getStockNewsThunk);
+  useFetchData(id, getStockPatternsThunk);
+  useFetchData(id, getStockPriceThunk);
+  useSocket(id, setPatterns, "patterns", "patterns");
+  useSocket(id, setNews, "news", "news");
+  usePriceEffect(price, currPrice, setPriceClass);
+
+  useEffect(() => {
+    setPatterns(currPatterns);
+    setNews(currNews);
+    setTimeout(() => setPrice(currPrice), 3000);
+  }, [currPatterns, currNews, currPrice]);
 
   if (!patterns) return null;
+
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  const newsAndStocks = [...news, ...patterns].sort((a, b) => {
+    const aTime = a.created_at ? new Date(a.created_at).getTime() : a.milliseconds;
+    const bTime = b.created_at ? new Date(b.created_at).getTime() : b.milliseconds;
+    return bTime - aTime;
+  });
 
   return (
     <div className="container">
@@ -88,8 +90,13 @@ function NewsPatterns() {
       </div>
       <div className="patterns">
         <StockChart id={id} />
+        <select className="styled-select" onChange={handleSelectChange}>
+          <option>All</option>
+          <option>Patterns</option>
+          <option>News</option>
+        </select>
         {newsAndStocks.map((newsOrPattern) => {
-          if (newsOrPattern.pattern_name) {
+          if (newsOrPattern.pattern_name && (selectedOption === "Patterns" || selectedOption === "All")) {
             return (
               <PatternTile
                 key={newsOrPattern.id}
@@ -97,7 +104,7 @@ function NewsPatterns() {
                 currPrice={currPrice}
               />
             );
-          } else if (newsOrPattern.headline) {
+          } else if (newsOrPattern.headline && (selectedOption === "News" || selectedOption === "All")) {
             return <NewsTile key={newsOrPattern.id} news={newsOrPattern} />;
           }
         })}

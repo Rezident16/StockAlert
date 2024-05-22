@@ -16,7 +16,7 @@ import "./Chart.css";
 function StockChart({ id }) {
   const [barset, setBarset] = useState([]);
   const [patterns, setPatterns] = useState([]);
-  const [timeframe, setTimeframe] = useState(0);
+  const [timeframe, setTimeframe] = useState(5);
 
   useEffect(() => {
     const fetchAndSetBars = () =>

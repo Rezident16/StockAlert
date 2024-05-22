@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-# from alpaca_trade_api import REST
 from torch import device
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
@@ -7,14 +6,11 @@ from alpaca_trade_api import REST, TimeFrame, TimeFrameUnit
 from dotenv import load_dotenv
 import talib
 import numpy as np
-import pytz
 import os
 from ..patterns import Pattern
 from ..news import News
 from ..db import db
 from ..stock import Stock
-import alpaca
-import lumibot
 from dateutil.relativedelta import relativedelta
 import redis
 import pickle
@@ -119,10 +115,8 @@ def get_barset(stock, timeFrameChosen):
         barset = api.get_bars(stock.symbol,timeframe=TimeFrame.Hour, start = one_month_ago, limit=750) # Hourly timeframe
     elif timeFrameChosen == '1Day':
         barset = api.get_bars(stock.symbol, TimeFrame.Day, start = year_ago , limit=367) # Daily timeframe
-        # barset = api.get_bars(stock.symbol, TimeFrame.Day, start=priorDates, end=today, limit=100)
     else:
         barset = api.get_bars(stock.symbol, TimeFrame.Week, start = five_year_ago, limit=264) # Weekly timeframe
-        # barset = api.get_bars(stock.symbol, TimeFrame.Week, start=prioWeeklyDates, end=today, limit=100)
     return barset
 
 
