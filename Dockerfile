@@ -1,12 +1,13 @@
-FROM node:15-buster as build
+FROM node:15-alpine3.10 as build
 RUN apt-get update --allow-releaseinfo-change && apt-get install -y python make g++
 COPY /react-app /react_app
 WORKDIR /react_app
 RUN npm install && CI=false && npm run build
 
-FROM python:3.9-slim-buster
+FROM python:3.9.18-alpine3.18
 RUN apt-get update --allow-releaseinfo-change && apt-get install -y build-essential postgresql libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev
-
+RUN apk add build-base
+RUN apk add postgresql-dev gcc python3-dev musl-dev
 # Add the TA-Lib library installation commands
 RUN apt-get install -y wget && \
     wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
@@ -26,9 +27,6 @@ ARG DATABASE_URL
 ARG SCHEMA
 ARG REACT_APP_BASE_URL
 ARG SECRET_KEY
-ENV FLASK_APP=$FLASK_APP
-ENV POSTGRES_USER=db_bmf9_user
-ENV POSTGRES_PASSWORD=oD91pwr3OR00u6HgRQDpqyXQ86WbeiZW
 WORKDIR /var/www
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt && pip install --upgrade setuptools
