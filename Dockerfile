@@ -1,4 +1,4 @@
-FROM node:15 as build
+FROM node:15-buster as build
 RUN apt-get update && apt-get install -y python make g++
 COPY /react-app /react_app
 WORKDIR /react_app
