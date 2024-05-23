@@ -1,16 +1,13 @@
 FROM node:15-alpine3.10 as build
-RUN apt-get update --allow-releaseinfo-change && apt-get install -y python make g++
+RUN apk update && apk add python make g++
 COPY /react-app /react_app
 WORKDIR /react_app
 RUN npm install && CI=false && npm run build
 
 FROM python:3.9.18-alpine3.18
-RUN apt-get update --allow-releaseinfo-change && apt-get install -y build-essential postgresql libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev
-RUN apk add build-base
-RUN apk add postgresql-dev gcc python3-dev musl-dev
+RUN apk update && apk add build-base postgresql-dev gfortran openblas-dev libxml2-dev libxslt-dev gcc python3-dev musl-dev wget
 # Add the TA-Lib library installation commands
-RUN apt-get install -y wget && \
-    wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
+RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
     tar -xvzf ta-lib-0.4.0-src.tar.gz && \
     cd ta-lib/ && \
     ./configure --prefix=/usr && \
@@ -18,8 +15,7 @@ RUN apt-get install -y wget && \
     make install && \
     cd .. && \
     rm -R ta-lib ta-lib-0.4.0-src.tar.gz && \
-    apt-get remove -y wget && \
-    apt-get clean
+    apk del wget
 
 ARG FLASK_APP
 ARG FLASK_ENV
