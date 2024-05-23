@@ -1,8 +1,6 @@
 from flask import Blueprint, jsonify, request, abort
 from app.models import *
-from datetime import datetime
 from app.models.stock_utils.utils import estimate_sentiment, get_barset, check_patterns, get_price
-import json
 stock_routes = Blueprint('stocks', __name__)
 
 @stock_routes.route('/<int:id>')

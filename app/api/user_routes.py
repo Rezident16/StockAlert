@@ -1,12 +1,8 @@
 from flask import Blueprint, jsonify, session, request
-from flask_login import login_required,current_user
+from flask_login import login_required, current_user
 from app.models import User
-from app.forms import SignUpForm
-from app.models import *
-from app.forms import *
 
 user_routes = Blueprint('users', __name__)
-
 
 @user_routes.route('/')
 @login_required
@@ -17,12 +13,9 @@ def users():
     users = User.query.all()
     return {'users': [user.to_dict_self() for user in users]}
 
-
-
-
 @user_routes.route('/current')
 @login_required
-def current(id):
+def current():
     """
     Query for a user by id and returns that user in a dictionary
     """

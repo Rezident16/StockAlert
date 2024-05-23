@@ -1,10 +1,6 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, jsonify
 from app.models import *
-from datetime import datetime
-import json
 from app.models.stock_utils.chart_utils import get_barset
-from app.models.stock_utils.utils import check_patterns
-from sqlalchemy import and_
 
 
 chart_routes = Blueprint('charts', __name__)
