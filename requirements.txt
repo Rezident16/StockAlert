@@ -16,7 +16,7 @@ blinker==1.7.0
 ccxt==4.2.85
 certifi==2024.2.2
 cffi==1.16.0
-charset-normalizer==3.3.2
+charset-normalizer
 click==8.1.7
 contourpy==1.2.1
 cryptography==42.0.5
