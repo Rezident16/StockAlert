@@ -6,6 +6,20 @@ RUN npm install && CI=false && npm run build
 
 FROM python:3.9-slim-buster
 RUN apt-get update --allow-releaseinfo-change && apt-get install -y build-essential postgresql libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev
+
+# Add the TA-Lib library installation commands
+RUN apt-get install -y wget && \
+    wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
+    tar -xvzf ta-lib-0.4.0-src.tar.gz && \
+    cd ta-lib/ && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -R ta-lib ta-lib-0.4.0-src.tar.gz && \
+    apt-get remove -y wget && \
+    apt-get clean
+
 ARG FLASK_APP
 ARG FLASK_ENV
 ARG DATABASE_URL
