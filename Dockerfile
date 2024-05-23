@@ -16,8 +16,6 @@ ENV FLASK_APP=$FLASK_APP
 WORKDIR /var/www
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt && pip install --upgrade setuptools
-RUN pip uninstall -y packaging
-RUN pip install packaging>=20.9
 RUN pip install email_validator
 RUN pip install psycopg2
 COPY . .
