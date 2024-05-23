@@ -27,6 +27,8 @@ ARG SCHEMA
 ARG REACT_APP_BASE_URL
 ARG SECRET_KEY
 ENV FLASK_APP=$FLASK_APP
+ENV POSTGRES_USER=db_bmf9_user
+ENV POSTGRES_PASSWORD=oD91pwr3OR00u6HgRQDpqyXQ86WbeiZW
 WORKDIR /var/www
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt && pip install --upgrade setuptools
