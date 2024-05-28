@@ -1,13 +1,5 @@
 FROM node:16-slim as build
-RUN apt-get update && apt-get install -y python make g++
-COPY /react-app /react_app
-WORKDIR /react_app
-RUN npm install && CI=false && npm run build
-
-FROM python:3.9
-RUN apt-get update && apt-get install -y build-essential libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev gcc python3-dev musl-dev wget
-# Add the TA-Lib library installation commands
-RUN apt-get install -y postgresql-client
+RUN apt-get update && apt-get install -y python make g++ wget
 RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
     tar -xvzf ta-lib-0.4.0-src.tar.gz && \
     cd ta-lib/ && \
@@ -15,10 +7,15 @@ RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
     make && \
     make install && \
     cd .. && \
-    rm -R ta-lib ta-lib-0.4.0-src.tar.gz && \
-    apt-get remove -y wget && \
-    apt-get clean
+    rm -R ta-lib ta-lib-0.4.0-src.tar.gz
+COPY /react-app /react_app
+WORKDIR /react_app
+RUN npm install && CI=false && npm run build
 
+FROM python:3.9
+RUN apt-get update && apt-get install -y build-essential libpq-dev gfortran libopenblas-dev libxml2-dev libxslt-dev gcc python3-dev musl-dev
+# Add the TA-Lib library installation commands
+RUN apt-get install -y postgresql-client
 ARG FLASK_APP
 ARG FLASK_ENV
 ARG DATABASE_URL
