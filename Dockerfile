@@ -1,4 +1,4 @@
-FROM node:15-slim as build
+FROM node:16-slim as build
 RUN apt-get update && apt-get install -y python make g++
 COPY /react-app /react_app
 WORKDIR /react_app
