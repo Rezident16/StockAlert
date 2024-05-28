@@ -1,5 +1,6 @@
 FROM node:16-slim as build
-RUN apt-get update && apt-get install -y python make g++ wget
+RUN apt-get update && apt-get install -y python3 make g++ wget
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
     tar -xvzf ta-lib-0.4.0-src.tar.gz && \
     cd ta-lib/ && \
