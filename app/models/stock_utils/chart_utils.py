@@ -3,6 +3,7 @@ from alpaca_trade_api import REST, TimeFrame, TimeFrameUnit
 from dotenv import load_dotenv
 import os
 from dateutil.relativedelta import relativedelta
+from .utils import get_dates
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
@@ -13,16 +14,6 @@ ALPACA_CREDS = {
     "API_KEY":API_KEY, 
     "API_SECRET": API_SECRET, 
 }
-
-def get_dates(): 
-    today = datetime.now().date() - timedelta(days=1)
-    one_week_ago = today - timedelta(weeks=1)
-    one_month_ago = today - relativedelta(months=1)
-    three_month_ago = today - relativedelta(months=3)
-    start_of_year = datetime(today.year, 1, 1).date()
-    year_ago = today - relativedelta(years=1)
-    five_year_ago = today - relativedelta(years=5)
-    return today.strftime('%Y-%m-%d'), one_week_ago.strftime('%Y-%m-%d'), one_month_ago.strftime('%Y-%m-%d'), three_month_ago.strftime('%Y-%m-%d'), start_of_year.strftime('%Y-%m-%d'), year_ago.strftime('%Y-%m-%d'), five_year_ago.strftime('%Y-%m-%d')
 
 def get_barset(stock, timeFrameChosen):
     api = REST(base_url=BASE_URL, key_id=API_KEY, secret_key=API_SECRET)

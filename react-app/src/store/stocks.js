@@ -16,7 +16,7 @@ export const getStocksThunk = () => async (dispatch) => {
 
 const initialState = { stocks: [] };
 
-export default function stockReducer(state = initialState, action) {
+export default function stocksReducer(state = initialState, action) {
     switch (action.type) {
         case 'stock/GET_STOCKS':
           return action.stocks;

@@ -26,9 +26,9 @@ function App() {
             <LoginFormPage />
           </Route>
           <Route path="/stocks/:id/">
-          <NewsPatterns />
+            <NewsPatterns />
           </Route>
-          {/* <Route path="/stocks/:id/patterns">
+          <Route path="/stocks/:id/patterns">
             <StockPatterns />
           </Route>
           <Route path="/stocks">
@@ -36,7 +36,7 @@ function App() {
           </Route>
           <Route path="/test/:id">
             <NewsPatterns />
-          </Route> */}
+          </Route>
         </Switch>
       )}
     </>

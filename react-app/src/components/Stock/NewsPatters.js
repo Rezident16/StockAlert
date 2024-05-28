@@ -9,6 +9,7 @@ import NewsTile from "./NewsTile";
 import io from "socket.io-client";
 import StockList from "./Stocks";
 import StockChart from "./StockChart/StockChart";
+import { getStockThunk } from "../../store/stock";
 
 const useFetchData = (id, thunk, interval = 5000) => {
   const dispatch = useDispatch();
@@ -65,11 +66,15 @@ function NewsPatterns() {
   useSocket(id, setNews, "news", "news");
   usePriceEffect(price, currPrice, setPriceClass);
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
+    dispatch(getStockThunk(id));
     setPatterns(currPatterns);
     setNews(currNews);
     setTimeout(() => setPrice(currPrice), 3000);
-  }, [currPatterns, currNews, currPrice]);
+  }, [currPatterns, currNews, currPrice, id]);
+
 
   if (!patterns) return null;
 
@@ -77,9 +82,14 @@ function NewsPatterns() {
     setSelectedOption(event.target.value);
   };
 
+
   const newsAndStocks = [...news, ...patterns].sort((a, b) => {
-    const aTime = a.created_at ? new Date(a.created_at).getTime() : a.milliseconds;
-    const bTime = b.created_at ? new Date(b.created_at).getTime() : b.milliseconds;
+    const aTime = a.created_at
+      ? new Date(a.created_at).getTime()
+      : a.milliseconds;
+    const bTime = b.created_at
+      ? new Date(b.created_at).getTime()
+      : b.milliseconds;
     return bTime - aTime;
   });
 
@@ -96,7 +106,10 @@ function NewsPatterns() {
           <option>News</option>
         </select>
         {newsAndStocks.map((newsOrPattern) => {
-          if (newsOrPattern.pattern_name && (selectedOption === "Patterns" || selectedOption === "All")) {
+          if (
+            newsOrPattern.pattern_name &&
+            (selectedOption === "Patterns" || selectedOption === "All")
+          ) {
             return (
               <PatternTile
                 key={newsOrPattern.id}
@@ -104,7 +117,10 @@ function NewsPatterns() {
                 currPrice={currPrice}
               />
             );
-          } else if (newsOrPattern.headline && (selectedOption === "News" || selectedOption === "All")) {
+          } else if (
+            newsOrPattern.headline &&
+            (selectedOption === "News" || selectedOption === "All")
+          ) {
             return <NewsTile key={newsOrPattern.id} news={newsOrPattern} />;
           }
         })}

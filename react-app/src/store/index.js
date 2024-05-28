@@ -3,17 +3,19 @@ import thunk from 'redux-thunk';
 import session from './session'
 import userReducer from './user';
 import newsReducer from './news';
-import stockReducer from './stocks';
+import stocksReducer from './stocks';
 import patternsReducer from './patterns';
 import stockPriceReducer from './stockPrice';
+import stockReducer from './stock';
 
 const rootReducer = combineReducers({
   session,
   user: userReducer,
   news: newsReducer,
-  stocks: stockReducer,
+  stocks: stocksReducer,
   patterns: patternsReducer,
-  price: stockPriceReducer
+  price: stockPriceReducer,
+  stock: stockReducer,
 });
 
 

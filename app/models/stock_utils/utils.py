@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from torch import device
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from dateutil.relativedelta import relativedelta
 import torch
 from alpaca_trade_api import REST, TimeFrame, TimeFrameUnit
 from dotenv import load_dotenv
@@ -9,19 +10,25 @@ import numpy as np
 import os
 from ..patterns import Pattern
 from ..news import News
-from ..db import db
 from ..stock import Stock
-from dateutil.relativedelta import relativedelta
+from ..db import db
 import redis
 import pickle
 from flask import current_app
 
 
+# Set the device to "cuda:0" if CUDA is available, otherwise use the CPU
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+# Create a connection to a local Redis database
 r = redis.Redis(host='localhost', port=6379, db=0)
 
+# Initialize a tokenizer from the pretrained "ProsusAI/finbert" model
 tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
+
+# Load the pretrained "ProsusAI/finbert" model for sequence classification and move it to the defined device
 model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert").to(device)
+
 labels = ["positive", "negative", "neutral"]
 
 
@@ -155,6 +162,7 @@ def cache_all_patterns():
 
             # Store the pattern in Redis
             r.set(key, pickle.dumps(pattern))
+
 def query_existing_pattern(stock, bullish_bearish_result, pattern, timeframe):
     key = f"pattern:{stock.id}:{bullish_bearish_result[0]['milliseconds']}:{pattern}:{bullish_bearish_result[0]['sentiment']}:{timeframe}"
     result = r.get(key)
