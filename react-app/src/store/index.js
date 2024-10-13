@@ -15,7 +15,7 @@ const rootReducer = combineReducers({
   stocks: stocksReducer,
   patterns: patternsReducer,
   price: stockPriceReducer,
-  stock: stockReducer,
+  stock: stockReducer, 
 });
 
 

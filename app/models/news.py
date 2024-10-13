@@ -19,6 +19,7 @@ class News(db.Model):
     images = db.Column(PickleType, nullable=True)
     source = db.Column(db.String, nullable=False)
     summary = db.Column(db.String, nullable=False)
+    symbols = db.Column(PickleType, nullable=True)
 
     stock_news = db.relationship('StockNews', back_populates='news', cascade='all, delete-orphan')
 
@@ -36,6 +37,7 @@ class News(db.Model):
             'images': self.images,
             'source': self.source,
             'summary': self.summary,
+            'symbols': self.symbols
         }
     
     def to_dict_stock_news(self):

@@ -7,7 +7,6 @@ const getStock = (stock) => ({
 
 export const getStockThunk = (id) => async (dispatch) => {
     const response = await fetch(`/api/stocks/${id}`);
-    console.log('response', response)
     if (response.ok) {
         const data = await response.json();
         dispatch(getStock(data));

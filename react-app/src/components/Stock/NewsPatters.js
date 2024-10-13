@@ -5,11 +5,12 @@ import { getStockPriceThunk } from "../../store/stockPrice";
 import { getStockPatternsThunk } from "../../store/patterns";
 import { getStockNewsThunk } from "../../store/news";
 import PatternTile from "./PatternTile";
-import NewsTile from "./NewsTile";
+import NewsTile from "./News/NewsTile";
 import io from "socket.io-client";
 import StockList from "./Stocks";
 import StockChart from "./StockChart/StockChart";
 import { getStockThunk } from "../../store/stock";
+import FinvizData from "./finvizData";
 
 const useFetchData = (id, thunk, interval = 5000) => {
   const dispatch = useDispatch();
@@ -75,13 +76,11 @@ function NewsPatterns() {
     setTimeout(() => setPrice(currPrice), 3000);
   }, [currPatterns, currNews, currPrice, id]);
 
-
   if (!patterns) return null;
 
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
   };
-
 
   const newsAndStocks = [...news, ...patterns].sort((a, b) => {
     const aTime = a.created_at
@@ -100,11 +99,13 @@ function NewsPatterns() {
       </div>
       <div className="patterns">
         <StockChart id={id} />
+        <FinvizData id={id} />
         <select className="styled-select" onChange={handleSelectChange}>
           <option>All</option>
           <option>Patterns</option>
           <option>News</option>
         </select>
+
         {newsAndStocks.map((newsOrPattern) => {
           if (
             newsOrPattern.pattern_name &&

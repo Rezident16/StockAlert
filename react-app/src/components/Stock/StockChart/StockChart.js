@@ -29,7 +29,6 @@ function StockChart({ id }) {
   }, [id, timeframe]);
 
   const stock = useSelector((state) => state.stock);
-  console.log(stock.symbol)
 
   if (barset.length === 0) return <div>Loading...</div>;
 

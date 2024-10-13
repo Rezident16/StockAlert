@@ -1,18 +1,18 @@
 /* TODO Add site wide styles */
- html {
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+html {
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 button {
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 body {
-    margin: 0px;
-    /* padding: 8px; */
-    /* height: 100%; */
+  margin: 0px;
+  /* padding: 8px; */
+  /* height: 100%; */
 }
 
 body::-webkit-scrollbar {
-    display: none;
+  display: none;
 }

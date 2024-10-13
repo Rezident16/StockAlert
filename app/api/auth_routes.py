@@ -34,14 +34,11 @@ client_secrets = {
   }
 }
 
-# generating a temporary file as the google oauth package requires a file for configuration
 secrets = NamedTemporaryFile()
-# Note that the property '.name' is the file PATH to our temporary file!
-# The command below will write our dictionary to the temp file AS json!
 with open(secrets.name, "w") as output:
     json.dump(client_secrets, output)
 
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1" # to allow Http traffic for local dev
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 flow = Flow.from_client_secrets_file(
     client_secrets_file=secrets.name,
@@ -49,9 +46,7 @@ flow = Flow.from_client_secrets_file(
     redirect_uri=f"{BASE_URL}/api/auth/callback"
 )
 
-secrets.close() # deletes our temporary file from the /tmp folder - We no longer need it as our flow object has been configured!
-
-
+secrets.close()
 
 auth_routes = Blueprint('auth', __name__)
 def validation_errors_to_error_messages(validation_errors):
@@ -179,5 +174,4 @@ def callback():
         if user_exists:
             return redirect(f"{REACT_APP_BASE_URL}/stocks")
     except AccessDeniedError:
-        # Redirect the user to the React app base URL
         return redirect(REACT_APP_BASE_URL)

@@ -2,6 +2,7 @@ import react, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStocksThunk } from "../../store/stocks";
 import { useHistory } from "react-router-dom";
+import "../../../src"
 
 function StockList() {
   const dispatch = useDispatch();

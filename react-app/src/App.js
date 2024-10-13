@@ -8,6 +8,7 @@ import StockNews from "./components/Stock/StockNews";
 import StockPatterns from "./components/Stock/StockPatterns";
 import StockList from "./components/Stock/Stocks";
 import NewsPatterns from "./components/Stock/NewsPatters";
+import "./index.css";
 
 function App() {
   const dispatch = useDispatch();

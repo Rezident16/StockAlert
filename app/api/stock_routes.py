@@ -1,6 +1,8 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, current_app, jsonify, request, abort
 from app.models import *
 from app.models.stock_utils.utils import estimate_sentiment, get_barset, check_patterns, get_price
+from app.models.stock_utils.finvizHelper import get_finviz_data
+
 stock_routes = Blueprint('stocks', __name__)
 
 @stock_routes.route('/<int:id>')
@@ -31,14 +33,27 @@ def format_news(news_list):
             formatted_news.append(formatted_content)
     return formatted_news
 
+# Needs to be modified - we are already getting the news in the get_all_news function
+# Might need to modify the model to include symbols
+# Done
+
+# @stock_routes.route('/<int:id>/news')
+# def get_stock_news(id):
+#     stock = Stock.query.get(id)
+#     news = estimate_sentiment(stock)
+#     formatted_news = format_news(news)
+#     return jsonify(formatted_news)
+
+
+
 @stock_routes.route('/<int:id>/news')
 def get_stock_news(id):
-    stock = Stock.query.get(id)
-    news = estimate_sentiment(stock)
-    formatted_news = format_news(news)
-    return jsonify(formatted_news)
-    # return stock.to_dict()
+    news_items = News.query.filter_by(stock_id=id).all()
+    news = [news_item.to_dict_self() for news_item in news_items]
+    return jsonify(news)
 
+
+# Continuesly Runs to get all news for all stocks
 @stock_routes.route('/news')
 def get_all_news():
     all_news = []
@@ -47,8 +62,24 @@ def get_all_news():
         news = estimate_sentiment(stock)
         formatted_news = format_news(news)
         all_news.append(formatted_news)
-    return jsonify([n.to_dict_self() for n in all_news])
+    if not all_news:
+        return jsonify([])
+    else:
+        return jsonify([n.to_dict_self() for n in all_news])
 
+
+# FINVIZ DATA
+@stock_routes.route("/<int:id>/finviz_stock_data")
+def get_finviz_stock_data(id):
+    stock = Stock.query.get(id)
+    symbol = stock.symbol
+    stock_data = get_finviz_data(symbol)
+    return jsonify(stock_data)
+
+
+
+
+# Gets the price of the stock in real time
 @stock_routes.route('/<int:id>/stock_price')
 def get_stock_price(id):
     stock = Stock.query.get(id)
@@ -82,6 +113,7 @@ def get_timeframe_and_barset(id, stock):
     json_barset = [bar_to_dict(bar) for bar in barset]
     return timeframe, json_barset
 
+# Runs Always to continuesly create stock patterns
 @stock_routes.route('/get_patterns/<int:id>')
 def get_stocks_patterns(id):
     stocks = Stock.query.all()
@@ -89,12 +121,12 @@ def get_stocks_patterns(id):
     for stock in stocks:
         result = get_timeframe_and_barset(id, stock)
         if result[0] == 'Invalid id':
-            return
+            break
         timeframe, json_barset = result[0], result[1]
         res.append(check_patterns(json_barset, stock, timeframe))
     return res
 
-
+# Get patterns per stock
 @stock_routes.route('/<int:id>/patterns')
 def get_stock_patterns(id):
     stock = Stock.query.get(id)

@@ -1,10 +1,10 @@
-import "./StockNews.css";
+import "../StockNews.css";
 
 function NewsTile({ news }) {
   const sentimentClassName =
-    news.sentiment === "positive"
+    news.sentiment === "Positive"
       ? "sentiment positive"
-      : news.sentiment === "negative"
+      : news.sentiment === "Negative"
       ? "sentiment negative"
       : "sentiment neutral";
   return (
@@ -61,7 +61,8 @@ function NewsTile({ news }) {
           <p>{news.summary}</p>
 
           <p>Source: {news.source}</p>
-          <p>Symbols: {news.symbols.join(", ")}</p>
+          {/* <p>Symbols: {news.symbols.join(", ")}</p> */}
+          <p>Symbols: {news.symbols ? news.symbols.join(", ") : null}</p>
         </div>
       </div>
       <a href={news.url} target="_blank" rel="noopener noreferrer">

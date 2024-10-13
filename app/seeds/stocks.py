@@ -18,3 +18,4 @@ def undo_stocks():
     else:
         db.session.execute(text("DELETE FROM stocks"))
     db.session.commit()
+        

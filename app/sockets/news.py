@@ -5,8 +5,6 @@ class NewsNameSpace(Namespace):
     def on_connect(self):
         print("Client connected")
         self.emit('connected', {'message': 'Connected to News namespace'})  
-
-
     def on_disconnect(self):
         print("Client disconnected")
     def on_news(self, data):

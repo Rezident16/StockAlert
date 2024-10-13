@@ -90,6 +90,6 @@
 .stock-news-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     gap: 30px;
 }
