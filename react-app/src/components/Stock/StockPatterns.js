@@ -7,6 +7,7 @@ import { getStockPriceThunk } from "../../store/stockPrice";
 import io from "socket.io-client";
 import StockList from "./Stocks";
 import StockChart from "./StockChart/StockChart";
+import { API_BASE_URL } from "../../config";
 
 function StockPatterns() {
   const stock = useParams();
@@ -30,13 +31,15 @@ function StockPatterns() {
   }, [dispatch, stock.id]);
 
   useEffect(() => {
-    const socket = io("http://localhost:5000/patterns");
+    const socket = io(`${API_BASE_URL}/patterns`);
 
     socket.on("connect", () => {
     });
 
     socket.on("patterns", (newPattern) => {
-      if (newPattern.stock_id === stock.id) {
+      // newPattern.stock_id is a number from the backend; stock.id is
+      // always a string (useParams()) - strict equality never matched.
+      if (String(newPattern.stock_id) === stock.id) {
         setPatterns((prevPatterns) => [...prevPatterns, newPattern]);
       }
     });
