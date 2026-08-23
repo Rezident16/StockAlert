@@ -63,18 +63,48 @@ class NewsSentimentAnalyzer:
         return news_and_sentiment
 
     def _store_news(self, news_and_sentiment):
+        """
+        Batches the Stock/News lookups instead of querying per symbol per
+        article - with K articles averaging M symbols each, the old code
+        did K*M*2 individual queries; this does 2 total, regardless of size.
+        """
         from app.sockets.news import news_namespace
+        from sqlalchemy.exc import IntegrityError
+
+        all_symbols = {symbol for obj in news_and_sentiment for symbol in obj['content'].symbols}
+        all_news_ids = {obj['content'].id for obj in news_and_sentiment}
+
+        stocks_by_symbol = {s.symbol: s for s in Stock.query.filter(Stock.symbol.in_(all_symbols))}
+        existing_news_ids = {
+            (n.news_id, n.stock_id)
+            for n in News.query.filter(News.news_id.in_(all_news_ids))
+        }
+
         for news_obj in news_and_sentiment:
             for symbol in news_obj['content'].symbols:
-                stock = Stock.query.filter_by(symbol=symbol).first()
+                stock = stocks_by_symbol.get(symbol)
                 if stock is None:
                     continue
-                existing_news = News.query.filter_by(news_id=news_obj['content'].id, stock_id=stock.id).first()
-                if existing_news is None:
-                    news_instance = self._build_news(news_obj, stock)
-                    db.session.add(news_instance)
-                    news_namespace.emit('news', news_instance.to_dict_stock_news(), namespace='/news')
-        db.session.commit()
+                if (news_obj['content'].id, stock.id) in existing_news_ids:
+                    continue
+                existing_news_ids.add((news_obj['content'].id, stock.id))
+
+                news_instance = self._build_news(news_obj, stock)
+                db.session.add(news_instance)
+                try:
+                    # Commit per row (not batched): the in-memory dedup
+                    # above only catches duplicates within this one fetch.
+                    # Real-world API pagination can still return the same
+                    # article twice across separate fetches at a page
+                    # boundary - the DB's unique constraint is the actual
+                    # source of truth, so a conflict here just means
+                    # someone else already stored it; skip and move on
+                    # instead of failing the whole batch.
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+                news_namespace.emit('news', news_instance.to_dict_stock_news(), namespace='/news')
 
     @staticmethod
     def _build_news(news_obj, stock):
@@ -84,7 +114,7 @@ class NewsSentimentAnalyzer:
             stock_id=stock.id,
             author=content.author,
             headline=content.headline,
-            created_at=str(content.created_at),
+            created_at=content.created_at,
             sentiment=news_obj['sentiment'],
             probability=news_obj['probability'],
             url=content.url,

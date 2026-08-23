@@ -36,13 +36,16 @@ class StockSignal:
         if len(closes) < self.LONG_TREND_PERIOD:
             return {'signal': 'NEUTRAL', 'reasons': ['insufficient_price_history']}
 
-        sma_long = TechnicalIndicators.sma(closes, self.LONG_TREND_PERIOD)[-1]
-        ema_short = TechnicalIndicators.ema(closes, self.SHORT_TREND_PERIOD)[-1]
-        rsi = TechnicalIndicators.rsi(closes, self.RSI_PERIOD)[-1]
+        # Cast every indicator to a plain float here: numpy scalars compare
+        # to numpy.bool_, not bool, and Flask's JSON encoder can't
+        # serialize either numpy type.
+        sma_long = float(TechnicalIndicators.sma(closes, self.LONG_TREND_PERIOD)[-1])
+        ema_short = float(TechnicalIndicators.ema(closes, self.SHORT_TREND_PERIOD)[-1])
+        rsi = float(TechnicalIndicators.rsi(closes, self.RSI_PERIOD)[-1])
         macd_line, macd_signal, _ = TechnicalIndicators.macd(closes)
-        macd_line, macd_signal = macd_line[-1], macd_signal[-1]
+        macd_line, macd_signal = float(macd_line[-1]), float(macd_signal[-1])
 
-        price = closes[-1]
+        price = float(closes[-1])
         pcr = self.pcr_signal.evaluate(symbol)
 
         above_long_trend = price > sma_long
