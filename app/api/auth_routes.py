@@ -1,10 +1,11 @@
 from flask import Blueprint, session, request
-from app.models import User, db
+from app.models import User, db, environment
 from app.forms import LoginForm
 from app.forms import SignUpForm
 from flask_login import current_user, login_user, logout_user
 
 import os
+import secrets as secrets_module
 
 import requests
 from flask import abort, redirect
@@ -21,7 +22,7 @@ CLIENT_ID = os.getenv('CLIENT_ID')
 BASE_URL = os.getenv('SERVER_BASE_URL')
 REACT_APP_BASE_URL = os.getenv('REACT_APP_BASE_URL')
 
-client_secrets = {
+CLIENT_SECRETS = {
   "web": {
     "client_id": CLIENT_ID,
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -34,19 +35,26 @@ client_secrets = {
   }
 }
 
-secrets = NamedTemporaryFile()
-with open(secrets.name, "w") as output:
-    json.dump(client_secrets, output)
+# Only relax oauthlib's HTTPS requirement outside of production.
+if os.environ.get('FLASK_ENV') != 'production':
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-flow = Flow.from_client_secrets_file(
-    client_secrets_file=secrets.name,
-    scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],
-    redirect_uri=f"{BASE_URL}/api/auth/callback"
-)
+def build_flow():
+    """
+    Build a fresh Flow per request. A module-level Flow is stateful
+    (fetch_token/credentials mutate it), so sharing one instance across
+    requests lets concurrent OAuth logins clobber each other's state.
+    """
+    with NamedTemporaryFile(mode="w") as secrets_file:
+        json.dump(CLIENT_SECRETS, secrets_file)
+        secrets_file.flush()
+        return Flow.from_client_secrets_file(
+            client_secrets_file=secrets_file.name,
+            scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],
+            redirect_uri=f"{BASE_URL}/api/auth/callback"
+        )
 
-secrets.close()
 
 auth_routes = Blueprint('auth', __name__)
 def validation_errors_to_error_messages(validation_errors):
@@ -124,10 +132,30 @@ def unauthorized():
     """
     return {'errors': ['Unauthorized']}, 401
 
+@auth_routes.route('/demo_login')
+def demo_login():
+    """
+    Logs in as the seeded Demo user with no credentials, so the app can be
+    tried locally without setting up Google OAuth. Disabled in production -
+    only OAuth/password login work there.
+    """
+    if environment == 'production':
+        return {'errors': ['Not found']}, 404
+
+    user = User.query.filter(User.email == 'emo@aa.io').first()
+    if user is None:
+        user = User(username='Demo', email='emo@aa.io', password='password')
+        db.session.add(user)
+        db.session.commit()
+
+    login_user(user)
+    return user.to_dict_self()
+
+
 @auth_routes.route("/oauth_login")
 def oauth_login():
+    flow = build_flow()
     authorization_url, state = flow.authorization_url(prompt="select_account consent")
-    print("AUTH URL: ", authorization_url)
     referrer = request.headers.get('Referer')
     session["referrer"] = referrer
     session["state"] = state
@@ -137,12 +165,11 @@ def oauth_login():
 @auth_routes.route("/callback")
 def callback():
     try:
-        # existing code here
+        if session.get("state") is None or session["state"] != request.args.get("state"):
+            abort(500)  # State does not match / missing - possible CSRF
+
+        flow = build_flow()
         flow.fetch_token(authorization_response=request.url)
-        # This is our CSRF protection for the Oauth Flow!
-        if not session["state"] == request.args["state"]:
-            # return redirect(REACT_APP_BASE_URL)
-            abort(500)  # State does not match!
 
         credentials = flow.credentials
         request_session = requests.session()
@@ -150,28 +177,28 @@ def callback():
         token_request = google.auth.transport.requests.Request(session=cached_session)
 
         id_info = id_token.verify_oauth2_token(
-            id_token=credentials._id_token,
+            id_token=credentials.id_token,
             request=token_request,
             audience=CLIENT_ID
         )
 
         temp_email = id_info.get('email')
-        user_exists = User.query.filter(User.email == temp_email).first()
+        user = User.query.filter(User.email == temp_email).first()
 
-        if not user_exists:
+        if not user:
             email_arr = temp_email.split('@')
-            user_exists = User(
+            user = User(
                     email=temp_email,
-                    password='OAUTH',
+                    # Random, never-revealed password: OAuth accounts must not
+                    # be logable into via the regular email/password form.
+                    password=secrets_module.token_urlsafe(32),
                     username=email_arr[0],
                 )
 
-            db.session.add(user_exists)
+            db.session.add(user)
             db.session.commit()
 
-        login_user(user_exists)
-
-        if user_exists:
-            return redirect(f"{REACT_APP_BASE_URL}/stocks")
+        login_user(user)
+        return redirect(f"{REACT_APP_BASE_URL}/stocks")
     except AccessDeniedError:
         return redirect(REACT_APP_BASE_URL)

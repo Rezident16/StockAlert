@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify
 from app.models import *
-from app.models.stock_utils.chart_utils import get_barset
+from app.models.stock_utils.alpaca_client import AlpacaClient
 
 
 chart_routes = Blueprint('charts', __name__)
+
+alpaca_client = AlpacaClient()
 
 # BARS
 def bar_to_dict(bar):
@@ -31,13 +33,15 @@ def get_timeframe_and_barset(id, stock):
         return 'Invalid id', 400, None
 
     timeframe = timeframes[id]
-    barset = get_barset(stock, timeframe)
+    barset = alpaca_client.get_chart_bars(stock.symbol, timeframe)
     json_barset = [bar_to_dict(bar) for bar in barset]
     return timeframe, json_barset
 
 @chart_routes.route('/<int:id>/bars/<int:timeframe>')
 def get_stock_bars(id, timeframe):
     stock = Stock.query.get(id)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
     timeframe, json_barset = get_timeframe_and_barset(timeframe, stock)
     if timeframe == 'Invalid id':
         return timeframe, 400
@@ -63,6 +67,10 @@ pattern_timeframes = {
 @chart_routes.route('/<int:id>/patterns/<int:timeframeId>')
 def get_stock_patterns_chart(id, timeframeId):
     stock = Stock.query.get(id)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
+    if timeframeId not in timeframes:
+        return {'errors': ['Invalid timeframe id']}, 400
     timeframe = timeframes[timeframeId]
     pattern_timeframe = pattern_timeframes[timeframe]
     patterns = Pattern.query.filter(

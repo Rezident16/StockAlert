@@ -1,13 +1,24 @@
 from flask import Blueprint, current_app, jsonify, request, abort
 from app.models import *
-from app.models.stock_utils.utils import estimate_sentiment, get_barset, check_patterns, get_price
-from app.models.stock_utils.finvizHelper import get_finviz_data
+from app.models.stock_utils.alpaca_client import AlpacaClient
+from app.models.stock_utils.sentiment_analyzer import NewsSentimentAnalyzer
+from app.models.stock_utils.pattern_detector import CandlestickPatternDetector
+from app.models.stock_utils.stock_signal import StockSignal
+from app.models.stock_utils.finviz_client import FinvizClient
 
 stock_routes = Blueprint('stocks', __name__)
+
+alpaca_client = AlpacaClient()
+sentiment_analyzer = NewsSentimentAnalyzer(alpaca_client)
+pattern_detector = CandlestickPatternDetector()
+stock_signal = StockSignal(alpaca_client)
+finviz_client = FinvizClient()
 
 @stock_routes.route('/<int:id>')
 def get_stock(id):
     stock = Stock.query.get(id)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
     return stock.to_dict()
 
 def format_news(news_list):
@@ -33,19 +44,6 @@ def format_news(news_list):
             formatted_news.append(formatted_content)
     return formatted_news
 
-# Needs to be modified - we are already getting the news in the get_all_news function
-# Might need to modify the model to include symbols
-# Done
-
-# @stock_routes.route('/<int:id>/news')
-# def get_stock_news(id):
-#     stock = Stock.query.get(id)
-#     news = estimate_sentiment(stock)
-#     formatted_news = format_news(news)
-#     return jsonify(formatted_news)
-
-
-
 @stock_routes.route('/<int:id>/news')
 def get_stock_news(id):
     news_items = News.query.filter_by(stock_id=id).all()
@@ -53,38 +51,47 @@ def get_stock_news(id):
     return jsonify(news)
 
 
-# Continuesly Runs to get all news for all stocks
-@stock_routes.route('/news')
-def get_all_news():
+# Fetches + stores news for all stocks. Runs FinBERT sentiment inference
+# synchronously per stock, so it's slow - prefer `flask stocks refresh-news`
+# on a schedule over hitting this route directly.
+def refresh_all_news():
     all_news = []
     stocks = Stock.query.all()
     for stock in stocks:
-        news = estimate_sentiment(stock)
-        formatted_news = format_news(news)
-        all_news.append(formatted_news)
-    if not all_news:
-        return jsonify([])
-    else:
-        return jsonify([n.to_dict_self() for n in all_news])
+        news = sentiment_analyzer.analyze(stock)
+        all_news.extend(format_news(news))
+    return all_news
+
+@stock_routes.route('/news')
+def get_all_news():
+    return jsonify(refresh_all_news())
 
 
 # FINVIZ DATA
 @stock_routes.route("/<int:id>/finviz_stock_data")
 def get_finviz_stock_data(id):
     stock = Stock.query.get(id)
-    symbol = stock.symbol
-    stock_data = get_finviz_data(symbol)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
+    stock_data = finviz_client.get_stock_data(stock.symbol)
     return jsonify(stock_data)
-
-
-
 
 # Gets the price of the stock in real time
 @stock_routes.route('/<int:id>/stock_price')
 def get_stock_price(id):
     stock = Stock.query.get(id)
-    price = get_price(stock.symbol)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
+    price = alpaca_client.get_price(stock.symbol)
     return jsonify(price)
+
+# Read-only BUY/SELL/NEUTRAL signal for the stock (trend + momentum + PCR).
+@stock_routes.route('/<int:id>/signal')
+def get_stock_signal(id):
+    stock = Stock.query.get(id)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
+    return jsonify(stock_signal.evaluate(stock.symbol))
 
 # BARS
 def bar_to_dict(bar):
@@ -109,30 +116,36 @@ def get_timeframe_and_barset(id, stock):
         return 'Invalid id', 400, None
 
     timeframe = timeframes[id]
-    barset = get_barset(stock, timeframe)
+    barset = alpaca_client.get_pattern_bars(stock.symbol, timeframe)
     json_barset = [bar_to_dict(bar) for bar in barset]
     return timeframe, json_barset
 
-# Runs Always to continuesly create stock patterns
-@stock_routes.route('/get_patterns/<int:id>')
-def get_stocks_patterns(id):
+# Detects + stores candlestick patterns for all stocks at one timeframe.
+# Fetches bars from Alpaca and runs TA-Lib per stock, so it's slow - prefer
+# `flask stocks refresh-patterns` on a schedule over hitting this route directly.
+def refresh_all_patterns(timeframe_id):
     stocks = Stock.query.all()
     res = []
     for stock in stocks:
-        result = get_timeframe_and_barset(id, stock)
+        result = get_timeframe_and_barset(timeframe_id, stock)
         if result[0] == 'Invalid id':
             break
         timeframe, json_barset = result[0], result[1]
-        res.append(check_patterns(json_barset, stock, timeframe))
+        res.append(pattern_detector.detect(json_barset, stock, timeframe))
     return res
+
+@stock_routes.route('/get_patterns/<int:id>')
+def get_stocks_patterns(id):
+    return refresh_all_patterns(id)
 
 # Get patterns per stock
 @stock_routes.route('/<int:id>/patterns')
 def get_stock_patterns(id):
     stock = Stock.query.get(id)
+    if stock is None:
+        return {'errors': ['Stock not found']}, 404
     patterns = Pattern.query.filter_by(stock_id=stock.id).all()
     return {'patterns': [pattern.to_dict_stock() for pattern in patterns]}
-    # return jsonify(res)
 
 
 @stock_routes.route('/')

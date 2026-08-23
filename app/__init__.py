@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, jsonify, render_template, request, session, redirect
+from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, generate_csrf
@@ -8,7 +9,9 @@ from flask_socketio import SocketIO
 from .config import Config
 from .models import db, User
 from .seeds import seed_commands
+from .commands import stock_commands
 from .api.auth_routes import auth_routes
+from .api.user_routes import user_routes
 from .api.stock_routes import stock_routes
 from .api.chart_routes import chart_routes
 
@@ -35,9 +38,11 @@ def load_user(id):
     return User.query.get(int(id))
 
 app.cli.add_command(seed_commands)
+app.cli.add_command(stock_commands)
 app.config.from_object(Config)
 
 app.register_blueprint(auth_routes, url_prefix='/api/auth')
+app.register_blueprint(user_routes, url_prefix='/api/users')
 app.register_blueprint(stock_routes, url_prefix='/api/stocks')
 app.register_blueprint(chart_routes, url_prefix='/api/charts')
 
@@ -84,6 +89,18 @@ def react_root(path):
 
 @app.errorhandler(404)
 def not_found(e):
+    if request.path.startswith('/api/'):
+        return jsonify({'errors': ['Not found']}), 404
     return app.send_static_file('index.html')
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return e
+    if request.path.startswith('/api/'):
+        app.logger.exception(e)
+        return jsonify({'errors': ['Internal server error']}), 500
+    raise e
 
 __all__ = ['app', 'socketio']
