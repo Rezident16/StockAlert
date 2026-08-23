@@ -1,5 +1,10 @@
 /node_modules
-/.venv
+node_modules
+venv
+.venv
 .env
 dev.db
-node_modules
+instance/
+dump.rdb
+.git
+
