@@ -11,6 +11,8 @@ import StockList from "./Stocks";
 import StockChart from "./StockChart/StockChart";
 import { getStockThunk } from "../../store/stock";
 import FinvizData from "./finvizData";
+import SignalBadge from "./SignalBadge";
+import { API_BASE_URL } from "../../config";
 
 const useFetchData = (id, thunk, interval = 5000) => {
   const dispatch = useDispatch();
@@ -25,9 +27,11 @@ const useFetchData = (id, thunk, interval = 5000) => {
 
 const useSocket = (id, setItem, endpoint, event) => {
   useEffect(() => {
-    const socket = io(`http://localhost:5000/${endpoint}`);
+    const socket = io(`${API_BASE_URL}/${endpoint}`);
     socket.on(event, (newItem) => {
-      if (newItem.stock_id === id) {
+      // newItem.stock_id is a number from the backend; id is always a
+      // string (useParams()) - strict equality never matched.
+      if (String(newItem.stock_id) === id) {
         setItem((prevItems) => [...prevItems, newItem]);
       }
     });
@@ -98,6 +102,7 @@ function NewsPatterns() {
         <StockList />
       </div>
       <div className="patterns">
+        <SignalBadge id={id} />
         <StockChart id={id} />
         <FinvizData id={id} />
         <select className="styled-select" onChange={handleSelectChange}>
