@@ -121,7 +121,10 @@ class AlpacaClient:
             if page_token:
                 params['page_token'] = page_token
             data = self._get(url, params=params)
-            bars.extend(Bar(raw) for raw in data.get('bars', []))
+            # Alpaca returns {"bars": null} (key present, value None), not a
+            # missing key, when there's nothing for this symbol/timeframe -
+            # dict.get(key, default) only falls back on a missing key.
+            bars.extend(Bar(raw) for raw in (data.get('bars') or []))
             page_token = data.get('next_page_token')
             if not page_token:
                 break
@@ -154,7 +157,7 @@ class AlpacaClient:
             if page_token:
                 params['page_token'] = page_token
             data = self._get(url, params=params)
-            articles.extend(NewsItem(raw) for raw in data.get('news', []))
+            articles.extend(NewsItem(raw) for raw in (data.get('news') or []))
             page_token = data.get('next_page_token')
             if not page_token:
                 break
@@ -180,7 +183,7 @@ class AlpacaClient:
             if page_token:
                 params['page_token'] = page_token
             data = self._get(url, params=params)
-            for contract in data.get('option_contracts', []):
+            for contract in (data.get('option_contracts') or []):
                 oi = int(contract.get('open_interest') or 0)
                 if contract.get('type') == 'put':
                     put_oi += oi

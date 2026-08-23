@@ -38,6 +38,9 @@ class CandlestickPatternDetector:
 
     def detect(self, barset, stock, timeframe):
         """Detect + persist new pattern hits for `stock` (a Stock model instance) over `barset` at `timeframe`."""
+        if not barset:
+            return {}
+
         from app.sockets.news import patterns_namespace
 
         open_, high, low, close, date = self._extract_data(barset)
