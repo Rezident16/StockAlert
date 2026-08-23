@@ -12,7 +12,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import "./Chart.css";
-import { useSelector } from "react-redux";
 
 function StockChart({ id }) {
   const [barset, setBarset] = useState([]);
@@ -27,8 +26,6 @@ function StockChart({ id }) {
     const interval = setInterval(fetchAndSetBars, 60000);
     return () => clearInterval(interval);
   }, [id, timeframe]);
-
-  const stock = useSelector((state) => state.stock);
 
   if (barset.length === 0) return <div>Loading...</div>;
 
