@@ -23,12 +23,12 @@ def current():
     return user.to_dict_self()
 
 @user_routes.route('/<int:userId>')
+@login_required
 def user(userId):
     """
     Query for a user by id and returns that user in a dictionary
     """
-    try:
-        user = User.query.get(userId)
-    except AttributeError:
-        return None
+    user = User.query.get(userId)
+    if user is None:
+        return {'errors': ['User not found']}, 404
     return user.to_dict_self()
