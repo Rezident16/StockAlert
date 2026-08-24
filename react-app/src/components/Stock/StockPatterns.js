@@ -17,6 +17,7 @@ function StockPatterns() {
   const currPrice = useSelector((state) => state.price.price);
   const [price, setPrice] = useState(currPrice);
   const [priceClass, setPriceClass] = useState("neutral-price");
+  const [chartTimeframe, setChartTimeframe] = useState(5);
 
   useEffect(() => {
     setPatterns(currPatterns);
@@ -77,7 +78,7 @@ function StockPatterns() {
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-3 md:gap-4">
-          <StockChart id={stock.id} />
+          <StockChart id={stock.id} timeframe={chartTimeframe} setTimeframe={setChartTimeframe} />
           {sortedPatterns.map((pattern, index) => (
             <PatternTile
               key={index}

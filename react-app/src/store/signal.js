@@ -5,8 +5,9 @@ const getStockSignal = (signal) => ({
     signal,
 });
 
-export const getStockSignalThunk = (id) => async (dispatch) => {
-    const response = await fetch(`/api/stocks/${id}/signal`);
+export const getStockSignalThunk = (id, timeframe) => async (dispatch) => {
+    const query = timeframe ? `?timeframe=${encodeURIComponent(timeframe)}` : "";
+    const response = await fetch(`/api/stocks/${id}/signal${query}`);
     if (response.ok) {
         const data = await response.json();
         dispatch(getStockSignal(data));

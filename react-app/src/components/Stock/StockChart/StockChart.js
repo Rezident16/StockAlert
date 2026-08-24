@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import "./Chart.css";
 
-const TIMEFRAMES = [
+export const TIMEFRAMES = [
   { id: 0, label: "1D" },
   { id: 1, label: "1W" },
   { id: 2, label: "1M" },
@@ -23,21 +23,40 @@ const TIMEFRAMES = [
   { id: 5, label: "5Y" },
 ];
 
-function StockChart({ id }) {
+function StockChart({ id, timeframe, setTimeframe }) {
   const [barset, setBarset] = useState([]);
   const [patterns, setPatterns] = useState([]);
-  const [timeframe, setTimeframe] = useState(5);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAndSetBars = () =>
-      fetchBars({ setBarset, stockId: id, timeframeId: timeframe });
+    let cancelled = false;
+    // New stock or timeframe selected - don't keep showing the previous
+    // one's chart while the new data loads.
+    setLoading(true);
+    setBarset([]);
+
+    const fetchAndSetBars = async () => {
+      await fetchBars({ setBarset, stockId: id, timeframeId: timeframe });
+      if (!cancelled) setLoading(false);
+    };
     fetchChartPatterns({ setPatterns, stockId: id, timeframeId: timeframe });
     fetchAndSetBars();
+    // Background refresh only - intentionally doesn't touch `loading`, so
+    // the chart doesn't flicker back to the spinner every 60s.
     const interval = setInterval(fetchAndSetBars, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [id, timeframe]);
 
-  if (barset.length === 0) return <div>Loading...</div>;
+  if (loading || barset.length === 0) {
+    return (
+      <div className="flex h-[348px] items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-brand" />
+      </div>
+    );
+  }
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

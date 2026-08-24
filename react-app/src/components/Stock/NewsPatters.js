@@ -8,7 +8,7 @@ import PatternTile from "./PatternTile";
 import NewsTile from "./News/NewsTile";
 import io from "socket.io-client";
 import StockList from "./Stocks";
-import StockChart from "./StockChart/StockChart";
+import StockChart, { TIMEFRAMES } from "./StockChart/StockChart";
 import { getStockThunk } from "../../store/stock";
 import FinvizData from "./finvizData";
 import SignalBadge from "./SignalBadge";
@@ -63,6 +63,9 @@ function NewsPatterns() {
   const [price, setPrice] = useState(currPrice);
   const [priceClass, setPriceClass] = useState("neutral-price");
   const [selectedOption, setSelectedOption] = useState("All");
+  const [chartTimeframe, setChartTimeframe] = useState(5);
+  const signalTimeframe =
+    TIMEFRAMES.find((tf) => tf.id === chartTimeframe)?.label || "1Y";
 
   useFetchData(id, getStockNewsThunk);
   useFetchData(id, getStockPatternsThunk);
@@ -103,8 +106,8 @@ function NewsPatterns() {
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-3 md:gap-4">
-          <SignalBadge id={id} />
-          <StockChart id={id} />
+          <SignalBadge id={id} timeframe={signalTimeframe} />
+          <StockChart id={id} timeframe={chartTimeframe} setTimeframe={setChartTimeframe} />
           <FinvizData id={id} />
           <select
             className="ml-auto w-48 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
