@@ -111,6 +111,7 @@ function NewsPatterns() {
           <FinvizData id={id} />
           <select
             className="ml-auto w-48 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+            value={selectedOption}
             onChange={handleSelectChange}
           >
             <option>All</option>
@@ -125,7 +126,7 @@ function NewsPatterns() {
             ) {
               return (
                 <PatternTile
-                  key={newsOrPattern.id}
+                  key={`pattern-${newsOrPattern.id}`}
                   pattern={newsOrPattern}
                   currPrice={currPrice}
                 />
@@ -134,8 +135,9 @@ function NewsPatterns() {
               newsOrPattern.headline &&
               (selectedOption === "News" || selectedOption === "All")
             ) {
-              return <NewsTile key={newsOrPattern.id} news={newsOrPattern} />;
+              return <NewsTile key={`news-${newsOrPattern.id}`} news={newsOrPattern} />;
             }
+            return null;
           })}
         </div>
       </div>
