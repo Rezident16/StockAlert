@@ -1,5 +1,4 @@
-import React, { useEffect, useState, Fragment } from 'react';
-import './FinvizData.css'; // Import the CSS file for styling
+import { useEffect, useState, Fragment } from 'react';
 
 const FinvizData = ({ id }) => {
     const [stockData, setStockData] = useState(null);
@@ -25,7 +24,9 @@ const FinvizData = ({ id }) => {
     useEffect(() => {
         const updateColumns = () => {
             const width = window.innerWidth;
-            setColumns(Math.floor(width / 300));
+            // Guard against 0 columns on very narrow screens (would divide by
+            // zero below).
+            setColumns(Math.max(1, Math.floor(width / 300)));
         };
 
         window.addEventListener('resize', updateColumns);
@@ -35,34 +36,35 @@ const FinvizData = ({ id }) => {
     }, []);
 
     return (
-        <div className="finviz-container">
-            <h1>Finviz Stock Data</h1>
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:p-5">
+            <h2 className="mb-3 text-base font-semibold text-gray-800">Finviz Stock Data</h2>
             {stockData ? (
-                <table className="finviz-table">
-                    <tbody>
-                        {(() => {
-                            const rows = [];
-                            Object.entries(stockData).map(([key, value], index) => {
-                                const rowIndex = Math.floor(index / columns);
-                                rows[rowIndex] = rows[rowIndex] || [];
-                                rows[rowIndex].push(
-                                    <Fragment key={index}>
-                                        <td className="finviz-cell finviz-key">{key}</td>
-                                        <td className="finviz-cell finviz-value">{value}</td>
-                                    </Fragment>
-                                );
-                                return null;
-                            });
-                            return rows.map((row, rowIndex) => (
-                                <tr key={rowIndex}>
-                                    {row}
-                                </tr>
-                            ));
-                        })()}
-                    </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-xs">
+                        <tbody>
+                            {(() => {
+                                const rows = [];
+                                Object.entries(stockData).forEach(([key, value], index) => {
+                                    const rowIndex = Math.floor(index / columns);
+                                    rows[rowIndex] = rows[rowIndex] || [];
+                                    rows[rowIndex].push(
+                                        <Fragment key={index}>
+                                            <td className="whitespace-nowrap border border-gray-200 px-2 py-1 font-bold text-gray-700">{key}</td>
+                                            <td className="whitespace-nowrap border border-gray-200 px-2 py-1 text-gray-600">{value}</td>
+                                        </Fragment>
+                                    );
+                                });
+                                return rows.map((row, rowIndex) => (
+                                    <tr key={rowIndex}>
+                                        {row}
+                                    </tr>
+                                ));
+                            })()}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
-                <p>No stock data available</p>
+                <p className="text-sm text-gray-500">No stock data available</p>
             )}
         </div>
     );

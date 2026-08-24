@@ -1,5 +1,5 @@
 import patternConversion from "./patternConversion";
-import "./Pattern.css";
+
 function PatternTile({ pattern, currPrice, priceClass }) {
   const date = new Date(parseInt(pattern.milliseconds));
   const localDate = date.toLocaleDateString(undefined, {
@@ -10,72 +10,59 @@ function PatternTile({ pattern, currPrice, priceClass }) {
   const stock = pattern.stock.symbol || "TEST";
   const timeframe = pattern.timeframe;
   const patternName = patternConversion(pattern.pattern_name);
-  const sentimentClassName =
-    sentiment === "Bullish" ? "positive pattern" : "negative pattern";
+  const isBullish = sentiment === "Bullish";
   const latestPrice = pattern.latest_price.toFixed(2);
+  const priceUp = currPrice > latestPrice;
+
+  const priceFlashClass =
+    priceClass === "up-price"
+      ? "bg-bullish/20"
+      : priceClass === "down-price"
+      ? "bg-bearish/20"
+      : "bg-transparent";
 
   return (
-    <div className="pattern-container" style={{ position: "relative" }}>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          right: 0,
-          padding: "2px 15px",
-          fontSize: "14px",
-          backgroundColor: "#f9d51282",
-          border: "1px solid #dee2e6",
-          borderRadius: "5px",
-        }}
-      >
-        Pattern
-      </div>
-      <div className="stock-date">
-        <h2 style={{ margin: "0", color: "#2C2D30" }}>{stock}</h2>
-        <div style={{ color: "black" }}>{localDate}</div>
-      </div>
-
-      <h3 className="pattern-time">
-        {patternName} / {timeframe}
-      </h3>
-      <div
-        className={sentimentClassName}
-        style={{
-          color: sentiment === "Bullish" ? "green" : "red",
-          fontWeight: "bold",
-          marginBottom: "10px",
-        }}
-      >
-        {" "}
-        {sentiment}
-      </div>
-
-      <div>
-        <div style={{ color: "black" }}>Price when caught: ${latestPrice}</div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            color: "black",
-          }}
-        >
-          Current Price:{" "}
-          <p className={priceClass} style={{ marginLeft: "3px" }}>
-            {" "}
-            ${currPrice}
-          </p>{" "}
-          <p
-            style={{
-              color: currPrice > latestPrice ? "green" : "red",
-              fontWeight: "bold",
-              fontSize: "20px",
-            }}
-          >
-            {currPrice > latestPrice ? "↑" : "↓"} $
-            {(currPrice - latestPrice).toFixed(2)}
-          </p>
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:p-5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">
+            ${stock}
+          </span>
+          <span className="text-xs text-gray-400">{localDate}</span>
         </div>
+        <span className="rounded-full border border-gray-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+          Pattern
+        </span>
+      </div>
+
+      <h3 className="mt-3 text-sm font-semibold text-gray-800">
+        {patternName} <span className="text-gray-400">/ {timeframe}</span>
+      </h3>
+
+      <span
+        className={
+          "mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold " +
+          (isBullish
+            ? "bg-bullish/15 text-bullish"
+            : "bg-bearish/15 text-bearish")
+        }
+      >
+        {sentiment}
+      </span>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+        <span>Caught at ${latestPrice}</span>
+        <span className="flex items-center gap-1">
+          Now
+          <span className={`rounded px-1 transition-colors duration-500 ${priceFlashClass}`}>
+            ${currPrice}
+          </span>
+        </span>
+        <span
+          className={`text-base font-bold ${priceUp ? "text-bullish" : "text-bearish"}`}
+        >
+          {priceUp ? "↑" : "↓"} ${Math.abs(currPrice - latestPrice).toFixed(2)}
+        </span>
       </div>
     </div>
   );

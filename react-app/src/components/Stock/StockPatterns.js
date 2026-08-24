@@ -71,23 +71,22 @@ function StockPatterns() {
 
   const sortedPatterns = patterns.sort((a, b) => b.milliseconds - a.milliseconds);
   return (
-    <div className="container">
-      <div className="stock-list">
+    <div className="flex flex-col lg:h-[calc(100vh-73px)] lg:flex-row">
+      <div className="lg:h-full lg:overflow-y-auto">
         <StockList />
       </div>
-      <div className="patterns">
-        <StockChart id={stock.id} 
-        />
-        {sortedPatterns.map((pattern, index) => (
-          <div key={index}
-          >
+      <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-3 md:gap-4">
+          <StockChart id={stock.id} />
+          {sortedPatterns.map((pattern, index) => (
             <PatternTile
+              key={index}
               pattern={pattern}
               currPrice={currPrice}
               priceClass={priceClass}
             />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

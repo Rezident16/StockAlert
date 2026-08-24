@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStockSignalThunk } from "../../store/signal";
-import "./SignalBadge.css";
 
 const REASON_LABELS = {
   price_above_sma200: "Price above 200-day average",
@@ -14,6 +13,12 @@ const REASON_LABELS = {
   pcr_bullish: "Put/call ratio bullish",
   pcr_bearish: "Put/call ratio bearish",
   insufficient_price_history: "Not enough price history yet",
+};
+
+const SIGNAL_STYLES = {
+  BUY: "bg-bullish/15 text-bullish border-bullish/40",
+  SELL: "bg-bearish/15 text-bearish border-bearish/40",
+  NEUTRAL: "bg-gray-100 text-gray-500 border-gray-300",
 };
 
 function SignalBadge({ id }) {
@@ -30,20 +35,21 @@ function SignalBadge({ id }) {
 
   if (!signal) return null;
 
-  const signalClassName =
-    signal.signal === "BUY"
-      ? "signal-badge buy"
-      : signal.signal === "SELL"
-      ? "signal-badge sell"
-      : "signal-badge neutral";
-
   const reasons = (signal.reasons || []).map(
     (reason) => REASON_LABELS[reason] || reason
   );
 
   return (
-    <div className={signalClassName} title={reasons.join(", ")}>
-      {signal.signal}
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:p-4">
+      <span
+        title={reasons.join(", ")}
+        className={`rounded-full border px-4 py-1.5 text-sm font-extrabold tracking-wide ${SIGNAL_STYLES[signal.signal] || SIGNAL_STYLES.NEUTRAL}`}
+      >
+        {signal.signal}
+      </span>
+      {reasons.length > 0 && (
+        <span className="text-xs text-gray-500">{reasons.join(" · ")}</span>
+      )}
     </div>
   );
 }

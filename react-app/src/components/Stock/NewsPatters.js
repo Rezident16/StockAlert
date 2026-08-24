@@ -97,39 +97,44 @@ function NewsPatterns() {
   });
 
   return (
-    <div className="container">
-      <div className="stock-list">
+    <div className="flex flex-col lg:h-[calc(100vh-73px)] lg:flex-row">
+      <div className="lg:h-full lg:overflow-y-auto">
         <StockList />
       </div>
-      <div className="patterns">
-        <SignalBadge id={id} />
-        <StockChart id={id} />
-        <FinvizData id={id} />
-        <select className="styled-select" onChange={handleSelectChange}>
-          <option>All</option>
-          <option>Patterns</option>
-          <option>News</option>
-        </select>
+      <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-3 md:gap-4">
+          <SignalBadge id={id} />
+          <StockChart id={id} />
+          <FinvizData id={id} />
+          <select
+            className="ml-auto w-48 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+            onChange={handleSelectChange}
+          >
+            <option>All</option>
+            <option>Patterns</option>
+            <option>News</option>
+          </select>
 
-        {newsAndStocks.map((newsOrPattern) => {
-          if (
-            newsOrPattern.pattern_name &&
-            (selectedOption === "Patterns" || selectedOption === "All")
-          ) {
-            return (
-              <PatternTile
-                key={newsOrPattern.id}
-                pattern={newsOrPattern}
-                currPrice={currPrice}
-              />
-            );
-          } else if (
-            newsOrPattern.headline &&
-            (selectedOption === "News" || selectedOption === "All")
-          ) {
-            return <NewsTile key={newsOrPattern.id} news={newsOrPattern} />;
-          }
-        })}
+          {newsAndStocks.map((newsOrPattern) => {
+            if (
+              newsOrPattern.pattern_name &&
+              (selectedOption === "Patterns" || selectedOption === "All")
+            ) {
+              return (
+                <PatternTile
+                  key={newsOrPattern.id}
+                  pattern={newsOrPattern}
+                  currPrice={currPrice}
+                />
+              );
+            } else if (
+              newsOrPattern.headline &&
+              (selectedOption === "News" || selectedOption === "All")
+            ) {
+              return <NewsTile key={newsOrPattern.id} news={newsOrPattern} />;
+            }
+          })}
+        </div>
       </div>
     </div>
   );

@@ -13,6 +13,16 @@ import {
 } from "recharts";
 import "./Chart.css";
 
+const TIMEFRAMES = [
+  { id: 0, label: "1D" },
+  { id: 1, label: "1W" },
+  { id: 2, label: "1M" },
+  { id: 3, label: "3M" },
+  { id: 6, label: "YTD" },
+  { id: 4, label: "1Y" },
+  { id: 5, label: "5Y" },
+];
+
 function StockChart({ id }) {
   const [barset, setBarset] = useState([]);
   const [patterns, setPatterns] = useState([]);
@@ -64,11 +74,7 @@ function StockChart({ id }) {
   };
 
   return (
-    <div
-      style={{
-        marginTop: "10px",
-      }}
-    >
+    <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:p-4">
       <ResponsiveContainer
         width="100%"
         height={300}
@@ -125,77 +131,21 @@ function StockChart({ id }) {
           <ReferenceLine y={0} stroke="#000" />
         </LineChart>
       </ResponsiveContainer>
-      <div className="timeframe-buttons">
-        <button
-          className={
-            timeframe === 0
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(0)}
-        >
-          1D
-        </button>
-        <button
-          className={
-            timeframe === 1
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(1)}
-        >
-          1W
-        </button>
-        <button
-          className={
-            timeframe === 2
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(2)}
-        >
-          1M
-        </button>
-        <button
-          className={
-            timeframe === 3
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(3)}
-        >
-          3M
-        </button>
-        <button
-          className={
-            timeframe === 6
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(6)}
-        >
-          YTD
-        </button>
-        <button
-          className={
-            timeframe === 4
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(4)}
-        >
-          1Y
-        </button>
-        <button
-          className={
-            timeframe === 5
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(5)}
-        >
-          5Y
-        </button>
+      <div className="mt-2 flex flex-wrap justify-center gap-1 sm:justify-start">
+        {TIMEFRAMES.map(({ id: tfId, label }) => (
+          <button
+            key={tfId}
+            onClick={() => setTimeframe(tfId)}
+            className={
+              "rounded-full px-3 py-1 text-xs font-bold transition-colors " +
+              (timeframe === tfId
+                ? "bg-bullish/15 text-bullish"
+                : "text-gray-500 hover:bg-gray-100")
+            }
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );
