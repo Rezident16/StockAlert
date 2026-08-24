@@ -86,12 +86,15 @@ def get_stock_price(id):
     return jsonify(price)
 
 # Read-only BUY/SELL/NEUTRAL signal for the stock (trend + momentum + PCR).
+# ?timeframe= matches the chart's timeframe labels (1D/1W/1M/3M/YTD/1Y/5Y) -
+# moving-average lengths scale with it; defaults to the 1Y/200-day view.
 @stock_routes.route('/<int:id>/signal')
 def get_stock_signal(id):
     stock = Stock.query.get(id)
     if stock is None:
         return {'errors': ['Stock not found']}, 404
-    return jsonify(stock_signal.evaluate(stock.symbol))
+    timeframe = request.args.get('timeframe', StockSignal.DEFAULT_TIMEFRAME)
+    return jsonify(stock_signal.evaluate(stock.symbol, timeframe))
 
 # BARS
 def bar_to_dict(bar):
