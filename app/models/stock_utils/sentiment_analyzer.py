@@ -1,6 +1,8 @@
+import re
 from datetime import datetime, timedelta
 
 import torch
+from bs4 import BeautifulSoup
 from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 
 from .alpaca_client import AlpacaClient, DATE_FORMAT
@@ -11,11 +13,21 @@ from ..db import db
 
 class NewsSentimentAnalyzer:
     """
-    Fetches recent news for a stock, scores each article with FinBERT, and
-    stores new articles + their sentiment in the DB (emitting a socket event
-    per new article). The FinBERT model is loaded lazily on first use rather
-    than at import time, since most requests never touch sentiment analysis
-    and importing this module happens on every app boot/worker start.
+    Fetches recent news for a stock, scores it with FinBERT, and stores new
+    articles + their sentiment in the DB (emitting a socket event per new
+    article). The FinBERT model is loaded lazily on first use rather than
+    at import time, since most requests never touch sentiment analysis and
+    importing this module happens on every app boot/worker start.
+
+    A single article often covers multiple tickers with different (even
+    opposite) sentiment per ticker - scoring the whole headline/summary
+    once and stamping that one result on every mentioned symbol would get
+    that wrong. When an article covers more than one symbol, this looks
+    for paragraphs in the full article body that actually mention a given
+    ticker and scores just those; if none are found (e.g. the article
+    refers to the company by name rather than ticker - there's no
+    ticker->company-name table here to catch that case) it falls back to
+    whole-article sentiment, same as a single-symbol article always gets.
     """
 
     MODEL_NAME = 'yiyanghkust/finbert-tone'
@@ -36,60 +48,64 @@ class NewsSentimentAnalyzer:
         return cls._nlp_pipeline
 
     def analyze(self, stock):
-        """Fetch + score + store news for `stock` (a Stock model instance). Returns the list of {content, sentiment, probability} dicts scored."""
+        """Fetch + score + store news for `stock` (a Stock model instance). Returns [{content, sentiment, probability}] scored specifically for `stock`."""
         news = self._fetch_news(stock)
         if not news:
             return []
-        news_and_sentiment = self._score_news(news)
-        self._store_news(news_and_sentiment)
-        return news_and_sentiment
+        scores = self._store_news(news)
+        return [
+            {'content': article, 'sentiment': scores[key][0], 'probability': scores[key][1]}
+            for article in news
+            if (key := (article.id, stock.symbol)) in scores
+        ]
 
     def _fetch_news(self, stock):
         today = datetime.now().date()
         week_prior = today - timedelta(days=self.NEWS_LOOKBACK_DAYS)
         return self.alpaca_client.get_news(stock.symbol, start=week_prior.strftime(DATE_FORMAT), end=today.strftime(DATE_FORMAT))
 
-    def _score_news(self, news):
-        pipeline_ = self._get_pipeline()
-        news_and_sentiment = []
-        for text in news:
-            content = text.summary if text.summary else text.headline
-            result = pipeline_(content)
-            news_and_sentiment.append({
-                'content': text,
-                'probability': result[0]['score'],
-                'sentiment': result[0]['label'],
-            })
-        return news_and_sentiment
-
-    def _store_news(self, news_and_sentiment):
+    def _store_news(self, news_list):
         """
         Batches the Stock/News lookups instead of querying per symbol per
-        article - with K articles averaging M symbols each, the old code
-        did K*M*2 individual queries; this does 2 total, regardless of size.
+        article - with K articles averaging M symbols each, a naive
+        approach does K*M*2 individual queries; this does 2 total,
+        regardless of size. Returns {(news_id, symbol): (sentiment,
+        probability)} for every symbol across every article, whether newly
+        scored just now or already stored from an earlier run.
         """
         from app.sockets.news import news_namespace
         from sqlalchemy.exc import IntegrityError
 
-        all_symbols = {symbol for obj in news_and_sentiment for symbol in obj['content'].symbols}
-        all_news_ids = {obj['content'].id for obj in news_and_sentiment}
+        all_symbols = {symbol for article in news_list for symbol in article.symbols}
+        all_news_ids = {article.id for article in news_list}
 
         stocks_by_symbol = {s.symbol: s for s in Stock.query.filter(Stock.symbol.in_(all_symbols))}
-        existing_news_ids = {
-            (n.news_id, n.stock_id)
+        existing_rows = {
+            (n.news_id, n.stock_id): (n.sentiment, n.probability)
             for n in News.query.filter(News.news_id.in_(all_news_ids))
         }
 
-        for news_obj in news_and_sentiment:
-            for symbol in news_obj['content'].symbols:
+        scores = {}
+        # The whole-article fallback score, computed lazily at most once
+        # per article regardless of how many symbols end up needing it.
+        fallback_cache = {}
+
+        for article in news_list:
+            for symbol in article.symbols:
                 stock = stocks_by_symbol.get(symbol)
                 if stock is None:
                     continue
-                if (news_obj['content'].id, stock.id) in existing_news_ids:
-                    continue
-                existing_news_ids.add((news_obj['content'].id, stock.id))
 
-                news_instance = self._build_news(news_obj, stock)
+                existing = existing_rows.get((article.id, stock.id))
+                if existing is not None:
+                    scores[(article.id, symbol)] = existing
+                    continue
+
+                sentiment, probability = self._score_for_symbol(article, symbol, fallback_cache)
+                scores[(article.id, symbol)] = (sentiment, probability)
+                existing_rows[(article.id, stock.id)] = (sentiment, probability)
+
+                news_instance = self._build_news(article, stock, sentiment, probability)
                 db.session.add(news_instance)
                 try:
                     # Commit per row (not batched): the in-memory dedup
@@ -106,20 +122,48 @@ class NewsSentimentAnalyzer:
                     continue
                 news_namespace.emit('news', news_instance.to_dict_stock_news(), namespace='/news')
 
+        return scores
+
+    def _score_for_symbol(self, article, symbol, fallback_cache):
+        segment = self._symbol_segment(article, symbol)
+        if segment:
+            return self._run_finbert(segment)
+        if article.id not in fallback_cache:
+            fallback_cache[article.id] = self._run_finbert(article.summary or article.headline)
+        return fallback_cache[article.id]
+
+    def _run_finbert(self, text):
+        result = self._get_pipeline()(text, truncation=True)
+        return result[0]['label'], result[0]['score']
+
+    def _symbol_segment(self, article, symbol):
+        """Paragraphs from the full article body that specifically mention `symbol`, or None if there's nothing worth isolating."""
+        if not article.content or len(article.symbols) <= 1:
+            # Single-symbol article - whole-article sentiment is already
+            # correct, no need for the more expensive per-paragraph pass.
+            return None
+        pattern = re.compile(rf'(?<![A-Za-z0-9]){re.escape(symbol)}(?![A-Za-z0-9])', re.IGNORECASE)
+        matches = [p for p in self._paragraphs(article.content) if pattern.search(p)]
+        return ' '.join(matches) if matches else None
+
     @staticmethod
-    def _build_news(news_obj, stock):
-        content = news_obj['content']
+    def _paragraphs(html):
+        soup = BeautifulSoup(html, 'html.parser')
+        return [text for tag in soup.find_all(['p', 'li']) if (text := tag.get_text(strip=True))]
+
+    @staticmethod
+    def _build_news(article, stock, sentiment, probability):
         return News(
-            news_id=content.id,
+            news_id=article.id,
             stock_id=stock.id,
-            author=content.author,
-            headline=content.headline,
-            created_at=content.created_at,
-            sentiment=news_obj['sentiment'],
-            probability=news_obj['probability'],
-            url=content.url,
-            images=content.images,
-            source=content.source,
-            summary=content.summary,
-            symbols=content.symbols,
+            author=article.author,
+            headline=article.headline,
+            created_at=article.created_at,
+            sentiment=sentiment,
+            probability=probability,
+            url=article.url,
+            images=article.images,
+            source=article.source,
+            summary=article.summary,
+            symbols=article.symbols,
         )

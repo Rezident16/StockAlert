@@ -35,6 +35,7 @@ class NewsItem:
         self.author = raw.get('author')
         self.created_at = pd.Timestamp(raw['created_at'])
         self.summary = raw.get('summary')
+        self.content = raw.get('content')
         self.url = raw.get('url')
         self.images = raw.get('images')
         self.source = raw.get('source')
