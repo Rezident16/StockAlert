@@ -7,6 +7,7 @@ import stocksReducer from './stocks';
 import patternsReducer from './patterns';
 import stockPriceReducer from './stockPrice';
 import stockReducer from './stock';
+import signalReducer from './signal';
 
 const rootReducer = combineReducers({
   session,
@@ -15,7 +16,8 @@ const rootReducer = combineReducers({
   stocks: stocksReducer,
   patterns: patternsReducer,
   price: stockPriceReducer,
-  stock: stockReducer, 
+  stock: stockReducer,
+  signal: signalReducer,
 });
 
 

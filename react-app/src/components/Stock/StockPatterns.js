@@ -7,6 +7,7 @@ import { getStockPriceThunk } from "../../store/stockPrice";
 import io from "socket.io-client";
 import StockList from "./Stocks";
 import StockChart from "./StockChart/StockChart";
+import { API_BASE_URL } from "../../config";
 
 function StockPatterns() {
   const stock = useParams();
@@ -16,6 +17,7 @@ function StockPatterns() {
   const currPrice = useSelector((state) => state.price.price);
   const [price, setPrice] = useState(currPrice);
   const [priceClass, setPriceClass] = useState("neutral-price");
+  const [chartTimeframe, setChartTimeframe] = useState(5);
 
   useEffect(() => {
     setPatterns(currPatterns);
@@ -30,13 +32,15 @@ function StockPatterns() {
   }, [dispatch, stock.id]);
 
   useEffect(() => {
-    const socket = io("http://localhost:5000/patterns");
+    const socket = io(`${API_BASE_URL}/patterns`);
 
     socket.on("connect", () => {
     });
 
     socket.on("patterns", (newPattern) => {
-      if (newPattern.stock_id === stock.id) {
+      // newPattern.stock_id is a number from the backend; stock.id is
+      // always a string (useParams()) - strict equality never matched.
+      if (String(newPattern.stock_id) === stock.id) {
         setPatterns((prevPatterns) => [...prevPatterns, newPattern]);
       }
     });
@@ -68,23 +72,22 @@ function StockPatterns() {
 
   const sortedPatterns = patterns.sort((a, b) => b.milliseconds - a.milliseconds);
   return (
-    <div className="container">
-      <div className="stock-list">
+    <div className="flex flex-col lg:h-[calc(100vh-73px)] lg:flex-row">
+      <div className="lg:h-full lg:overflow-y-auto">
         <StockList />
       </div>
-      <div className="patterns">
-        <StockChart id={stock.id} 
-        />
-        {sortedPatterns.map((pattern, index) => (
-          <div key={index}
-          >
+      <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-3 md:gap-4">
+          <StockChart id={stock.id} timeframe={chartTimeframe} setTimeframe={setChartTimeframe} />
+          {sortedPatterns.map((pattern, index) => (
             <PatternTile
+              key={index}
               pattern={pattern}
               currPrice={currPrice}
               priceClass={priceClass}
             />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

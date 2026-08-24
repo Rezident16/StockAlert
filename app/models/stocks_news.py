@@ -7,8 +7,8 @@ class StockNews(db.Model):
         __table_args__ = {'schema': SCHEMA}
 
     id = db.Column(db.Integer, primary_key=True)
-    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), nullable=False)
-    news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), nullable=False, index=True)
+    news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False, index=True)
 
     stock = db.relationship('Stock', back_populates='stock_news')
     news = db.relationship('News', back_populates='stock_news')

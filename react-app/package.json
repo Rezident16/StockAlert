@@ -28,10 +28,21 @@
     "talib": "^1.1.5",
     "yahoo-finance2": "^2.11.2"
   },
+  "devDependencies": {
+    "@craco/craco": "^6.4.5",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "postcss-loader": "^4.3.0",
+    "tailwindcss": "^3.4.3"
+  },
+  "overrides": {
+    "postcss-loader": "^4.3.0",
+    "postcss": "^8.4.38"
+  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "CI=false && react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "CI=false && craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

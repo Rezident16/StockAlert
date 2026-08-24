@@ -12,25 +12,51 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import "./Chart.css";
-import { useSelector } from "react-redux";
 
-function StockChart({ id }) {
+export const TIMEFRAMES = [
+  { id: 0, label: "1D" },
+  { id: 1, label: "1W" },
+  { id: 2, label: "1M" },
+  { id: 3, label: "3M" },
+  { id: 6, label: "YTD" },
+  { id: 4, label: "1Y" },
+  { id: 5, label: "5Y" },
+];
+
+function StockChart({ id, timeframe, setTimeframe }) {
   const [barset, setBarset] = useState([]);
   const [patterns, setPatterns] = useState([]);
-  const [timeframe, setTimeframe] = useState(5);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAndSetBars = () =>
-      fetchBars({ setBarset, stockId: id, timeframeId: timeframe });
+    let cancelled = false;
+    // New stock or timeframe selected - don't keep showing the previous
+    // one's chart while the new data loads.
+    setLoading(true);
+    setBarset([]);
+
+    const fetchAndSetBars = async () => {
+      await fetchBars({ setBarset, stockId: id, timeframeId: timeframe });
+      if (!cancelled) setLoading(false);
+    };
     fetchChartPatterns({ setPatterns, stockId: id, timeframeId: timeframe });
     fetchAndSetBars();
+    // Background refresh only - intentionally doesn't touch `loading`, so
+    // the chart doesn't flicker back to the spinner every 60s.
     const interval = setInterval(fetchAndSetBars, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [id, timeframe]);
 
-  const stock = useSelector((state) => state.stock);
-
-  if (barset.length === 0) return <div>Loading...</div>;
+  if (loading || barset.length === 0) {
+    return (
+      <div className="flex h-[348px] items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-brand" />
+      </div>
+    );
+  }
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -67,11 +93,7 @@ function StockChart({ id }) {
   };
 
   return (
-    <div
-      style={{
-        marginTop: "10px",
-      }}
-    >
+    <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:p-4">
       <ResponsiveContainer
         width="100%"
         height={300}
@@ -128,77 +150,21 @@ function StockChart({ id }) {
           <ReferenceLine y={0} stroke="#000" />
         </LineChart>
       </ResponsiveContainer>
-      <div className="timeframe-buttons">
-        <button
-          className={
-            timeframe === 0
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(0)}
-        >
-          1D
-        </button>
-        <button
-          className={
-            timeframe === 1
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(1)}
-        >
-          1W
-        </button>
-        <button
-          className={
-            timeframe === 2
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(2)}
-        >
-          1M
-        </button>
-        <button
-          className={
-            timeframe === 3
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(3)}
-        >
-          3M
-        </button>
-        <button
-          className={
-            timeframe === 6
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(6)}
-        >
-          YTD
-        </button>
-        <button
-          className={
-            timeframe === 4
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(4)}
-        >
-          1Y
-        </button>
-        <button
-          className={
-            timeframe === 5
-              ? "active-timeframe-button"
-              : "inactive-timeframe-button"
-          }
-          onClick={() => setTimeframe(5)}
-        >
-          5Y
-        </button>
+      <div className="mt-2 flex flex-wrap justify-center gap-1 sm:justify-start">
+        {TIMEFRAMES.map(({ id: tfId, label }) => (
+          <button
+            key={tfId}
+            onClick={() => setTimeframe(tfId)}
+            className={
+              "rounded-full px-3 py-1 text-xs font-bold transition-colors " +
+              (timeframe === tfId
+                ? "bg-bullish/15 text-bullish"
+                : "text-gray-500 hover:bg-gray-100")
+            }
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );

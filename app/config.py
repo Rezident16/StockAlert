@@ -11,3 +11,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL').replace('postgres://', 'postgresql://')
     SQLALCHEMY_ECHO = os.environ.get('FLASK_ENV') != 'production'
+    # Ping before using a pooled connection and recycle before Heroku-style
+    # managed Postgres drops idle ones, instead of surfacing that as a 500.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 280,
+    }

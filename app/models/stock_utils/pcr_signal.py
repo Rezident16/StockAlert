@@ -1,6 +1,6 @@
-import json
 import os
 import time
+from datetime import datetime
 
 import redis
 
@@ -28,10 +28,13 @@ class PCRSignal:
 
     HISTORY_KEY_PREFIX = 'pcr_history'
     HISTORY_WINDOW = 10  # trading days
+    HISTORY_RETENTION_DAYS = HISTORY_WINDOW * 3  # how long entries live before being trimmed
 
     def __init__(self, alpaca_client=None, redis_client=None):
         self.alpaca_client = alpaca_client or AlpacaClient()
-        self.redis = redis_client or redis.Redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
+        self.redis = redis_client or redis.Redis.from_url(
+            os.getenv('REDIS_URL', 'redis://localhost:6379/0'), decode_responses=True
+        )
 
     def evaluate(self, symbol, expiring_within_days=90):
         """Returns a dict describing the current PCR reading for `symbol`, or {'available': False, ...} if it can't be computed."""
@@ -87,30 +90,31 @@ class PCRSignal:
 
     def _record_and_check_trend(self, symbol, pcr):
         """
-        Appends today's PCR to a Redis-backed rolling history and reports
-        whether it's below its own 10-day average (falling hedging demand).
-        Fails open (returns None) until enough history has accumulated.
+        Records today's PCR in a Redis sorted set (score = day, member =
+        "day:pcr") and reports whether it's below its own 10-day average
+        (falling hedging demand). A sorted set makes today's write an
+        atomic upsert-by-day (no read-modify-write race on a shared blob
+        the way a single JSON value would have), and trimming old entries
+        is a range op instead of manual dict pruning. Fails open (returns
+        None) until enough history has accumulated.
         """
         key = f'{self.HISTORY_KEY_PREFIX}:{symbol}'
         today = time.strftime('%Y-%m-%d')
+        today_score = self._day_score(today)
+        cutoff_score = today_score - self.HISTORY_RETENTION_DAYS * 86400
 
-        history = self._load_history(key)
-        history[today] = pcr
-        stale_days = sorted(history)[:-self.HISTORY_WINDOW * 3] if len(history) > self.HISTORY_WINDOW * 3 else []
-        for old_day in stale_days:
-            del history[old_day]
-        self.redis.set(key, json.dumps(history))
+        pipe = self.redis.pipeline()
+        pipe.zremrangebyscore(key, today_score, today_score)  # replace any existing entry for today
+        pipe.zadd(key, {f'{today}:{pcr}': today_score})
+        pipe.zremrangebyscore(key, '-inf', cutoff_score)
+        pipe.zrevrangebyscore(key, today_score, '-inf', start=0, num=self.HISTORY_WINDOW)
+        *_, recent_members = pipe.execute()
 
-        recent_values = [v for _, v in sorted(history.items())][-self.HISTORY_WINDOW:]
+        recent_values = [float(member.rsplit(':', 1)[1]) for member in recent_members]
         if len(recent_values) < self.HISTORY_WINDOW:
             return None
         return pcr < (sum(recent_values) / len(recent_values))
 
-    def _load_history(self, key):
-        raw = self.redis.get(key)
-        if not raw:
-            return {}
-        try:
-            return json.loads(raw)
-        except (ValueError, TypeError):
-            return {}
+    @staticmethod
+    def _day_score(day_str):
+        return int(datetime.strptime(day_str, '%Y-%m-%d').timestamp())

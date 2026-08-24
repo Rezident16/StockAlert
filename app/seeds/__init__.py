@@ -1,7 +1,6 @@
 from flask.cli import AppGroup
 from .users import seed_users, undo_users
 from .stocks import seed_stocks, undo_stocks
-from app.models.stock_utils.pattern_detector import CandlestickPatternDetector
 
 from app.models.db import db, environment, SCHEMA
 
@@ -22,7 +21,6 @@ def seed():
     db.create_all()
     seed_users()
     seed_stocks()
-    CandlestickPatternDetector().cache_all()
     # Add other seed functions here
 # Creates the `flask seed undo` command
 @seed_commands.command('undo')
