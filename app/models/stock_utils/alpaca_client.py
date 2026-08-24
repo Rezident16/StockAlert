@@ -92,6 +92,7 @@ class AlpacaClient:
         today = datetime.now().date() - timedelta(days=1)
         return {
             'today': today.strftime(DATE_FORMAT),
+            'five_days_ago': (today - timedelta(days=5)).strftime(DATE_FORMAT),
             'one_week_ago': (today - timedelta(weeks=1)).strftime(DATE_FORMAT),
             'one_month_ago': (today - relativedelta(months=1)).strftime(DATE_FORMAT),
             'three_month_ago': (today - relativedelta(months=3)).strftime(DATE_FORMAT),
@@ -136,7 +137,16 @@ class AlpacaClient:
 
     def get_chart_bars(self, symbol, timeframe_label):
         spec = self.CHART_TIMEFRAMES[timeframe_label]
-        return self._get_bars(symbol, spec)
+        bars = self._get_bars(symbol, spec)
+        if not bars and timeframe_label == '1D':
+            # '1D' asks for the most recent 1-minute bars with no explicit
+            # start date - outside market hours / before today's session
+            # has published anything, that legitimately comes back empty.
+            # Fall back to the last completed trading day's bars instead of
+            # showing nothing.
+            fallback_spec = dict(spec, start_key='five_days_ago', needs_end=True)
+            bars = self._get_bars(symbol, fallback_spec)
+        return bars
 
     def get_price(self, symbol):
         data = self._get(f'{DATA_BASE_URL}/v2/stocks/{symbol}/snapshot')
