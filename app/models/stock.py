@@ -10,6 +10,10 @@ class Stock(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(10), nullable=False, unique=True)
+    # Company/fund name - used to catch news that refers to a stock by name
+    # instead of ticker (see NewsSentimentAnalyzer._symbol_segment). Nullable:
+    # matching just degrades to ticker-only for a stock with no name set.
+    name = db.Column(db.String(150), nullable=True)
 
     watchlist_stocks = db.relationship('WatchlistStock', back_populates='stock', cascade='all, delete-orphan')
 
@@ -22,6 +26,7 @@ class Stock(db.Model):
         return {
             'id': self.id,
             'symbol': self.symbol,
+            'name': self.name,
         }
     
     def to_dict_watchlist(self):

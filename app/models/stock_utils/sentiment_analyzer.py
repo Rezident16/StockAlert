@@ -24,10 +24,10 @@ class NewsSentimentAnalyzer:
     once and stamping that one result on every mentioned symbol would get
     that wrong. When an article covers more than one symbol, this looks
     for paragraphs in the full article body that actually mention a given
-    ticker and scores just those; if none are found (e.g. the article
-    refers to the company by name rather than ticker - there's no
-    ticker->company-name table here to catch that case) it falls back to
-    whole-article sentiment, same as a single-symbol article always gets.
+    stock - by ticker or by its Stock.name, since articles often refer to
+    a company by name rather than symbol - and scores just those; if
+    neither matches anywhere, it falls back to whole-article sentiment,
+    same as a single-symbol article always gets.
     """
 
     MODEL_NAME = 'yiyanghkust/finbert-tone'
@@ -101,7 +101,7 @@ class NewsSentimentAnalyzer:
                     scores[(article.id, symbol)] = existing
                     continue
 
-                sentiment, probability = self._score_for_symbol(article, symbol, fallback_cache)
+                sentiment, probability = self._score_for_symbol(article, stock, fallback_cache)
                 scores[(article.id, symbol)] = (sentiment, probability)
                 existing_rows[(article.id, stock.id)] = (sentiment, probability)
 
@@ -124,27 +124,38 @@ class NewsSentimentAnalyzer:
 
         return scores
 
-    def _score_for_symbol(self, article, symbol, fallback_cache):
-        segment = self._symbol_segment(article, symbol)
+    def _score_for_symbol(self, article, stock, fallback_cache):
+        segment = self._stock_segment(article, stock)
         if segment:
             return self._run_finbert(segment)
         if article.id not in fallback_cache:
             fallback_cache[article.id] = self._run_finbert(article.summary or article.headline)
         return fallback_cache[article.id]
 
+    # BERT's hard limit; the tokenizer's own model_max_length isn't
+    # reliably set for this checkpoint, so truncation=True alone doesn't
+    # actually cap it here - pass max_length explicitly too.
+    MAX_TOKENS = 512
+
     def _run_finbert(self, text):
-        result = self._get_pipeline()(text, truncation=True)
+        result = self._get_pipeline()(text, truncation=True, max_length=self.MAX_TOKENS)
         return result[0]['label'], result[0]['score']
 
-    def _symbol_segment(self, article, symbol):
-        """Paragraphs from the full article body that specifically mention `symbol`, or None if there's nothing worth isolating."""
+    def _stock_segment(self, article, stock):
+        """Paragraphs from the full article body that mention `stock` by ticker or by name, or None if there's nothing worth isolating."""
         if not article.content or len(article.symbols) <= 1:
             # Single-symbol article - whole-article sentiment is already
             # correct, no need for the more expensive per-paragraph pass.
             return None
-        pattern = re.compile(rf'(?<![A-Za-z0-9]){re.escape(symbol)}(?![A-Za-z0-9])', re.IGNORECASE)
+        pattern = self._stock_pattern(stock)
         matches = [p for p in self._paragraphs(article.content) if pattern.search(p)]
         return ' '.join(matches) if matches else None
+
+    @staticmethod
+    def _stock_pattern(stock):
+        terms = [stock.symbol] + ([stock.name] if stock.name else [])
+        alternation = '|'.join(re.escape(term) for term in terms)
+        return re.compile(rf'(?<![A-Za-z0-9])(?:{alternation})(?![A-Za-z0-9])', re.IGNORECASE)
 
     @staticmethod
     def _paragraphs(html):

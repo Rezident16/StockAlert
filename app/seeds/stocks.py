@@ -7,7 +7,8 @@ def seed_stocks():
         csvreader = csv.reader(file)
         for stock in csvreader:
             new_stock = Stock(
-                symbol = (stock[0])
+                symbol=stock[0],
+                name=stock[1] if len(stock) > 1 else None,
             )
             db.session.add(new_stock)
             db.session.commit()
