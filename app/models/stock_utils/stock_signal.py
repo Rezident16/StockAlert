@@ -126,13 +126,75 @@ class StockSignal:
         # De-dupe while preserving order (a flag can't appear in both lists).
         reasons = bullish_flags + bearish_flags
 
-        return self._result(signal, reasons, price=price, long_ma=long_ma, short_ma=short_ma,
-                             long_period=long_period, short_period=short_period, rsi=rsi,
-                             macd_bullish=macd_bullish, pcr=pcr, timeframe=timeframe)
+        indicators = self._build_indicators(
+            price=price, long_ma=long_ma, short_ma=short_ma, long_period=long_period,
+            short_period=short_period, above_long_trend=above_long_trend,
+            above_short_trend=above_short_trend, rsi=rsi, macd_line=macd_line,
+            macd_signal=macd_signal, macd_bullish=macd_bullish, pcr=pcr,
+        )
 
-    def _result(self, signal, reason_codes, **extra):
+        return self._result(signal, reasons, indicators=indicators, price=price, long_ma=long_ma,
+                             short_ma=short_ma, long_period=long_period, short_period=short_period,
+                             rsi=rsi, macd_bullish=macd_bullish, pcr=pcr, timeframe=timeframe)
+
+    def _build_indicators(self, price, long_ma, short_ma, long_period, short_period,
+                           above_long_trend, above_short_trend, rsi, macd_line, macd_signal,
+                           macd_bullish, pcr):
+        """
+        A per-indicator good/bad/neutral breakdown for display (e.g. a
+        table), independent of `reasons` above - every indicator gets a
+        row here regardless of which side it fell on, rather than only the
+        ones that happened to fire a flag.
+        """
+        indicators = [
+            {
+                'name': f'Price vs {long_period}-day trend',
+                'value': f'${price:.2f} vs ${long_ma:.2f}',
+                'status': 'good' if above_long_trend else 'bad',
+            },
+            {
+                'name': f'Price vs {short_period}-day trend',
+                'value': f'${price:.2f} vs ${short_ma:.2f}',
+                'status': 'good' if above_short_trend else 'bad',
+            },
+            {
+                'name': f'RSI ({self.RSI_PERIOD})',
+                'value': f'{rsi:.1f}',
+                'status': self._rsi_status(rsi),
+            },
+            {
+                'name': 'MACD',
+                'value': f'{macd_line:.2f} vs {macd_signal:.2f}',
+                'status': 'good' if macd_bullish else 'bad',
+            },
+        ]
+        if pcr.get('available'):
+            indicators.append({
+                'name': 'Put/call ratio',
+                'value': f'{pcr["pcr"]:.2f}',
+                'status': self._pcr_status(pcr['sentiment']),
+            })
+        return indicators
+
+    def _rsi_status(self, rsi):
+        if rsi > self.RSI_OVERBOUGHT:
+            return 'bad'
+        if self.RSI_LOWER_BOUND <= rsi <= self.RSI_UPPER_BOUND:
+            return 'good'
+        return 'neutral'
+
+    @staticmethod
+    def _pcr_status(sentiment):
+        if sentiment in ('fear_contrarian_bullish', 'slightly_bullish'):
+            return 'good'
+        if sentiment == 'complacency_contrarian_bearish':
+            return 'bad'
+        return 'neutral'
+
+    def _result(self, signal, reason_codes, indicators=None, **extra):
         return {
             'signal': signal,
             'reasons': [self.REASON_LABELS.get(code, code) for code in reason_codes],
+            'indicators': indicators or [],
             **extra,
         }
