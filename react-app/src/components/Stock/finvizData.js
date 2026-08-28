@@ -3,6 +3,7 @@ import { useEffect, useState, Fragment } from 'react';
 const FinvizData = ({ id }) => {
     const [stockData, setStockData] = useState(null);
     const [columns, setColumns] = useState(6); // Default to 6 columns
+    const [isOpen, setIsOpen] = useState(true);
 
     useEffect(() => {
         const fetchStockData = async () => {
@@ -37,8 +38,26 @@ const FinvizData = ({ id }) => {
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:p-5">
-            <h2 className="mb-3 text-base font-semibold text-gray-800">Finviz Stock Data</h2>
-            {stockData ? (
+            <button
+                type="button"
+                onClick={() => setIsOpen((open) => !open)}
+                className="mb-3 flex w-full items-center justify-between text-left"
+            >
+                <h2 className="text-base font-semibold text-gray-800">Finviz Stock Data</h2>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className={`h-5 w-5 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                >
+                    <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                        clipRule="evenodd"
+                    />
+                </svg>
+            </button>
+            {isOpen && (stockData ? (
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-xs">
                         <tbody>
@@ -65,7 +84,7 @@ const FinvizData = ({ id }) => {
                 </div>
             ) : (
                 <p className="text-sm text-gray-500">No stock data available</p>
-            )}
+            ))}
         </div>
     );
 };

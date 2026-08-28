@@ -12,6 +12,7 @@ import StockChart, { TIMEFRAMES } from "./StockChart/StockChart";
 import { getStockThunk } from "../../store/stock";
 import FinvizData from "./finvizData";
 import SignalBadge from "./SignalBadge";
+import IndicatorTable from "./IndicatorTable";
 import { API_BASE_URL } from "../../config";
 
 const useFetchData = (id, thunk, interval = 5000) => {
@@ -107,6 +108,7 @@ function NewsPatterns() {
       <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-3 md:gap-4">
           <SignalBadge id={id} timeframe={signalTimeframe} />
+          <IndicatorTable />
           <StockChart id={id} timeframe={chartTimeframe} setTimeframe={setChartTimeframe} />
           <FinvizData id={id} />
           <select
