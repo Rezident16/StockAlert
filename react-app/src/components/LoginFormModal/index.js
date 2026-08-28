@@ -3,15 +3,19 @@ import { demoLogin } from "../../store/session";
 import { useDispatch } from "react-redux";
 import google from "./google.png";
 import { API_BASE_URL } from "../../config";
+import { useModal } from "../../context/Modal";
 
 function LoginFormModal() {
   const dispatch = useDispatch();
+  const { closeModal } = useModal();
   const [errors, setErrors] = useState([]);
 
   const handleDemoLogin = async () => {
     const data = await dispatch(demoLogin());
     if (data) {
       setErrors(data);
+    } else {
+      closeModal();
     }
   };
 
